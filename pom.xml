@@ -15,6 +15,6 @@
     <module>services/media-uploader-service</module>
     <module>services/metadata-service</module>
     <module>services/notification-service</module>
-    <module>services/transaction-service</module>
+    <module>services/transactions-service</module>
   </modules>
 </project>
