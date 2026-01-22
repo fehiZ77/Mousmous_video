@@ -48,14 +48,14 @@ jobs:
       - name: SonarCloud Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=moustas-video \
-          -Dsonar.organization=fehiz \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.sources=services,frontend/src \
-          -Dsonar.exclusions=**/node_modules/**,**/dist/** \
-          -Dsonar.exclusions=**/node_modules/**,**/vendor/**,**/dist/** \
-          -Dsonar.tests=services \
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=moustas-video \
+            -Dsonar.organization=fehiz \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.sources=services,frontend/src \
+            -Dsonar.exclusions=**/node_modules/**,**/vendor/**,**/dist/** \
+            -Dsonar.tests=services \
 
       # 7️⃣ Build frontend React
       - name: Build frontend React
