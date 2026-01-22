@@ -8,14 +8,7 @@
   <artifactId>mousmous-video</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-
-  <properties>
-    <sonar.organization>fehiz</sonar.organization>
-    <sonar.projectKey>mousmous-video</sonar.projectKey> <!-- Project Key -->
-    <sonar.host.url>http://your-sonarqube-instance</sonar.host.url> <!-- SonarQube URL -->
-    <sonar.login>${env.SONAR_TOKEN}</sonar.login> <!-- Use your SonarQube authentication token -->
-  </properties>
-
+  
   <modules>
     <module>services/auth-service</module>
     <module>services/kms-service</module>
