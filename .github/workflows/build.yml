@@ -42,7 +42,7 @@ jobs:
 
       # 5️⃣ Build backend services sans lancer les tests
       - name: Build backend services
-        run: mvn -B clean verify -DskipTests
+        run: mvn -B clean install -DskipTests
 
       # 6️⃣ SonarCloud Scan
       - name: SonarCloud Scan
@@ -54,8 +54,6 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.sources=services,frontend/src \
           -Dsonar.exclusions=**/node_modules/**,**/dist/** \
-          -Dsonar.tests=services/*/src/test/java \
-          -Dsonar.test.inclusions=**/src/test/java/** \
           -DskipTests
 
       # 7️⃣ Build frontend React
