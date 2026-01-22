@@ -10,6 +10,8 @@
   <packaging>pom</packaging>
   
   <modules>
+    <module>api-gateway</module>
+    <module>frontend</module>
     <module>services/auth-service</module>
     <module>services/kms-service</module>
     <module>services/media-uploader-service</module>
