@@ -3,7 +3,7 @@ name: Build and SonarCloud Analysis
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -40,9 +40,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # 5️⃣ Build backend services sans lancer les tests
+      # 5️⃣ Build backend services with tests for coverage
       - name: Build backend services
-        run: mvn -B clean install -DskipTests
+        run: mvn -B clean install
 
       # 6️⃣ SonarCloud Scan
       - name: SonarCloud Scan
@@ -50,10 +50,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=moustas-video \
+            -Dsonar.projectKey=fehiz_Mousmous_video \
             -Dsonar.organization=fehiz \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.exclusions=**/node_modules/**,**/vendor/**,**/dist/** \
+            -Dsonar.exclusions=**/node_modules/**,**/vendor/**,**/dist/**
 
       # 7️⃣ Build frontend React
       - name: Build frontend React
