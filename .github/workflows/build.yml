@@ -44,6 +44,39 @@ jobs:
       - name: Build backend services
         run: mvn -B clean install
 
+      # 5.5️⃣ Setup Snyk CLI
+      - name: Setup Snyk
+        uses: snyk/actions/setup@v4
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # 5.6️⃣ Snyk Open Source (dependencies) scan across all projects
+      - name: Snyk Open Source scan (SCA)
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk test --all-projects --detection-depth=4 --exclude=**/node_modules/** --sarif-file-output=snyk-sca.sarif
+
+      # 5.7️⃣ Snyk Code scan (SAST)
+      - name: Snyk Code scan (SAST)
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk code test --sarif-file-output=snyk-code.sarif
+
+      # 5.8️⃣ Upload Snyk SARIF results to GitHub Security tab
+      - name: Upload Snyk SCA SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-sca.sarif
+          category: snyk-sca
+
+      - name: Upload Snyk Code SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code
+
       # 6️⃣ SonarCloud Scan
       - name: SonarCloud Scan
         env:
