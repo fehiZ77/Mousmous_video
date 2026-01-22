@@ -56,7 +56,6 @@ jobs:
           -Dsonar.exclusions=**/node_modules/**,**/dist/** \
           -Dsonar.exclusions=**/node_modules/**,**/vendor/**,**/dist/** \
           -Dsonar.tests=services \
-          -DskipTests
 
       # 7️⃣ Build frontend React
       - name: Build frontend React
