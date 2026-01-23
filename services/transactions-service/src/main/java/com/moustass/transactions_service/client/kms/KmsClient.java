@@ -1,5 +1,6 @@
 package com.moustass.transactions_service.client.kms;
 
+import com.moustass.transactions_service.utils.SecurityUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -14,11 +15,13 @@ public class KmsClient {
         this.webClient = webClient;
     }
 
-    public String signFile(Long userId, Long keyId, String fileHash, String token) {
+    public String signFile(Long userId, Long keyId, String fileHash) {
         KmsSignRequest req = new KmsSignRequest();
         req.setUserId(userId);
         req.setKeyId(keyId);
         req.setFileHash(fileHash);
+
+        String token = SecurityUtil.getCurrentToken();
 
         return webClient.post()
                 .uri("/sign")
@@ -29,12 +32,14 @@ public class KmsClient {
                 .block(); // synchrone
     }
 
-    public boolean verifyFile(String pk, String fileHash, String signatureFile, String token){
+    public boolean verifyFile(String pk, String fileHash, String signatureFile){
         KmsVerifyRequest req = new KmsVerifyRequest(
                 pk,
                 fileHash,
                 signatureFile
         );
+
+        String token = SecurityUtil.getCurrentToken();
 
         return Boolean.TRUE.equals(webClient.post()
                 .uri("/verify")

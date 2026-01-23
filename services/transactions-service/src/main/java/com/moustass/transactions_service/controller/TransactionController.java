@@ -93,7 +93,6 @@ public class TransactionController {
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            String token = authHeader.substring(7);
             TransactionRequestDto request = new TransactionRequestDto(
                     ownerId,
                     recipientId,
@@ -101,8 +100,7 @@ public class TransactionController {
                     validity,
                     keyId,
                     publicKey,
-                    video,
-                    token
+                    video
             );
 
             transactionService.createTransaction(request);

@@ -1,15 +1,16 @@
 package com.daniax.auth_service.controller;
 
-import com.daniax.auth_service.dto.AuthResponse;
-import com.daniax.auth_service.dto.ChangeMdpDto;
-import com.daniax.auth_service.dto.LoginUserDto;
-import com.daniax.auth_service.dto.RegisterUserDto;
+import com.daniax.auth_service.client.audit.AuditAction;
+import com.daniax.auth_service.client.audit.AuditClient;
+import com.daniax.auth_service.dto.*;
 import com.daniax.auth_service.entity.User;
 import com.daniax.auth_service.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("api/auth")
@@ -84,7 +85,8 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterUserDto userDto) {
         try {
             User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getMdp(), userDto.getRole());
-            return new ResponseEntity<>(authService.create(user), HttpStatus.OK);
+            user = authService.create(user);
+            return new ResponseEntity<>(user, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),

@@ -10,9 +10,8 @@ public class TransactionRequestDto {
     private Long keyId;
     private String publicKey;
     private MultipartFile video;
-    private String token;
 
-    public TransactionRequestDto(Long owner_id, Long recipient_id, double amount, int validity, Long keyId, String publicKey, MultipartFile video, String token) {
+    public TransactionRequestDto(Long owner_id, Long recipient_id, double amount, int validity, Long keyId, String publicKey, MultipartFile video) {
         this.owner_id = owner_id;
         this.recipient_id = recipient_id;
         this.amount = amount;
@@ -20,7 +19,6 @@ public class TransactionRequestDto {
         this.keyId = keyId;
         this.publicKey = publicKey;
         this.video = video;
-        this.token = token;
     }
 
     public Long getOwner_id() {
@@ -77,13 +75,5 @@ public class TransactionRequestDto {
 
     public void setVideo(MultipartFile video) {
         this.video = video;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 }
