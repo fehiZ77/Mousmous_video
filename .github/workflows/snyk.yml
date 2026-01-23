@@ -13,6 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -21,16 +27,21 @@ jobs:
       - name: Setup Snyk
         uses: snyk/actions/setup@master
         with:
-          snyk-version: 'latest'
+          snyk-version: latest
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Snyk Open Source (SCA)
+      - name: Authenticate Snyk
+        run: snyk auth $SNYK_TOKEN
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --all-projects --detection-depth=4
+
+      - name: Snyk Open Source (Maven parent)
+        run: snyk test --file=pom.xml
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Code (SAST)
+        run: snyk code test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk code test
