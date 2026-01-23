@@ -1,9 +1,13 @@
 package com.moustass_video.kms_service.service;
 
+import com.moustass_video.kms_service.client.audit.AuditAction;
+import com.moustass_video.kms_service.client.audit.AuditClient;
+import com.moustass_video.kms_service.client.audit.AuditRequestDto;
 import com.moustass_video.kms_service.dto.*;
 import com.moustass_video.kms_service.entity.KeyStatus;
 import com.moustass_video.kms_service.entity.UserKeys;
 import com.moustass_video.kms_service.repository.UserKeyRepository;
+import com.moustass_video.kms_service.utils.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -17,12 +21,22 @@ public class UserKeyManagementService {
     private final KeyEncryptionService encryptionService;
     private final SignatureService signatureService;
     private final UserKeyRepository userKeyRepository;
+    private final AuditClient auditClient;
 
-    public UserKeyManagementService(KeyPairService keyPairService, KeyEncryptionService encryptionService, SignatureService signatureService, UserKeyRepository repository) {
+    private final String serviceName = "AUTH";
+
+    public UserKeyManagementService(
+            KeyPairService keyPairService,
+            KeyEncryptionService encryptionService,
+            SignatureService signatureService,
+            UserKeyRepository repository,
+            AuditClient auditClient
+    ) {
         this.keyPairService = keyPairService;
         this.encryptionService = encryptionService;
         this.signatureService = signatureService;
         this.userKeyRepository = repository;
+        this.auditClient = auditClient;
     }
 
     public UserKeys revokeKey(RevokeKeyRequestDto dto) {
@@ -30,7 +44,18 @@ public class UserKeyManagementService {
                 .orElseThrow(() -> new RuntimeException("Key not found"));
 
         key.setStatus(KeyStatus.REVOKED);
-        return userKeyRepository.save(key);
+        key = userKeyRepository.save(key);
+        auditClient.createAudit(
+                new AuditRequestDto(
+                        serviceName,
+                        AuditAction.REVOKE_KEY.name(),
+                        "Revoke key : " + key.getId(),
+                        AuditRequestDto.Status.SUCCES,
+                        LocalDateTime.now().toString()
+                )
+        );
+
+        return key;
     }
 
     public List<UserKeys> getValidUserKeys(Long userId) {
@@ -85,7 +110,17 @@ public class UserKeyManagementService {
         entity.setCreatedAt(now);
         entity.setExpiredAt(now.plusMonths(dto.getValidity()));
 
-        return userKeyRepository.save(entity);
+        entity = userKeyRepository.save(entity);
+        auditClient.createAudit(
+                new AuditRequestDto(
+                        serviceName,
+                        AuditAction.CREATE_KEY.name(),
+                        "Create key : " + entity.getId(),
+                        AuditRequestDto.Status.SUCCES,
+                        LocalDateTime.now().toString()
+                )
+        );
+        return entity;
     }
 
     /**

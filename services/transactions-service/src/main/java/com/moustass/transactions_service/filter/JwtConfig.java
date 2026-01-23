@@ -47,7 +47,7 @@ public class JwtConfig extends OncePerRequestFilter {
                 String role = "ROLE_" + (String)tokenData.get("role");
 
                 UserDetails userDetails = new User(userName, null, Collections.singletonList(new SimpleGrantedAuthority(role)));
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, jwt, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }

@@ -26,12 +26,8 @@ const allNavigationItems = [
   { name: "Ordres de virement", href: "/virements", icon: Banknote, roles: ["USER"] },
   { name: "Gestion key", href: "/keys", icon: Key, roles: ["USER"] },
   { name: "Utilisateurs", href: "/users", icon: Users, roles: ["ADMIN"] },
-  // { name: "Gestion des Clés", href: "/keys", icon: Key },
-  // { name: "Notifications", href: "/notifications", icon: Bell },
-  // { name: "Journal d'Audit", href: "/audit", icon: FileText },
-  // { name: "Sécurité", href: "/security", icon: Shield },
-  // { name: "Paramètres", href: "/settings", icon: Settings },
   { name: "Notifications", href: "/notifications", icon: Bell, roles: ["USER"] },
+  { name: "Audit", href: "/audit", icon: FileText, roles: ["ADMIN"] },
 ]
 
 export function DashboardSidebar() {
