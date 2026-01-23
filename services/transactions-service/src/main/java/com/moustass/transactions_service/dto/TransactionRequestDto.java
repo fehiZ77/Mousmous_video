@@ -3,38 +3,57 @@ package com.moustass.transactions_service.dto;
 import org.springframework.web.multipart.MultipartFile;
 
 public class TransactionRequestDto {
-    private Long owner_id;
-    private Long recipient_id;
+    private Long ownerId;
+    private Long recipientId;
     private double amount;
     private int validity;
     private Long keyId;
     private String publicKey;
     private MultipartFile video;
+    private MultipartFile sk;
 
-    public TransactionRequestDto(Long owner_id, Long recipient_id, double amount, int validity, Long keyId, String publicKey, MultipartFile video) {
-        this.owner_id = owner_id;
-        this.recipient_id = recipient_id;
+    public TransactionRequestDto(
+            Long ownerId,
+            Long recipientId,
+            double amount,
+            int validity,
+            Long keyId,
+            String publicKey,
+            MultipartFile video,
+            MultipartFile sk
+    ) {
+        this.ownerId = ownerId;
+        this.recipientId = recipientId;
         this.amount = amount;
         this.validity = validity;
         this.keyId = keyId;
         this.publicKey = publicKey;
         this.video = video;
+        this.sk = sk;
     }
 
-    public Long getOwner_id() {
-        return owner_id;
+    public MultipartFile getSk() {
+        return sk;
     }
 
-    public void setOwner_id(Long owner_id) {
-        this.owner_id = owner_id;
+    public void setSk(MultipartFile sk) {
+        this.sk = sk;
     }
 
-    public Long getRecipient_id() {
-        return recipient_id;
+    public Long getOwnerId() {
+        return ownerId;
     }
 
-    public void setRecipient_id(Long recipient_id) {
-        this.recipient_id = recipient_id;
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public Long getRecipientId() {
+        return recipientId;
+    }
+
+    public void setRecipientId(Long recipientId) {
+        this.recipientId = recipientId;
     }
 
     public double getAmount() {

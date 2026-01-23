@@ -20,12 +20,6 @@ public class UserKeys {
     @Column(name = "public_key", columnDefinition = "TEXT")
     private String publicKey;
 
-    @Column(name = "encrypted_private_key", columnDefinition = "TEXT")
-    private String encryptedPrivateKey;
-
-    @Column(name = "iv")
-    private String iv;
-
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private KeyStatus status;
@@ -67,22 +61,6 @@ public class UserKeys {
 
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
-    }
-
-    public String getEncryptedPrivateKey() {
-        return encryptedPrivateKey;
-    }
-
-    public void setEncryptedPrivateKey(String encryptedPrivateKey) {
-        this.encryptedPrivateKey = encryptedPrivateKey;
-    }
-
-    public String getIv() {
-        return iv;
-    }
-
-    public void setIv(String iv) {
-        this.iv = iv;
     }
 
     public LocalDateTime getCreatedAt() {

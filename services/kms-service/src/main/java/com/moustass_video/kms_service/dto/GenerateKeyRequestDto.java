@@ -1,6 +1,6 @@
 package com.moustass_video.kms_service.dto;
 
-public class GenerateKeyDto {
+public class GenerateKeyRequestDto {
     private Long userId;
     private String keyName;
     private int validity;    // par mois ty

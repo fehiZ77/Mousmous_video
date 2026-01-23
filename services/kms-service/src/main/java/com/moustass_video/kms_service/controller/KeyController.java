@@ -1,13 +1,12 @@
 package com.moustass_video.kms_service.controller;
 
-import com.moustass_video.kms_service.dto.FileToSignDto;
-import com.moustass_video.kms_service.dto.GenerateKeyDto;
-import com.moustass_video.kms_service.dto.RevokeKeyRequestDto;
-import com.moustass_video.kms_service.dto.VerifySignDto;
+import com.moustass_video.kms_service.dto.*;
 import com.moustass_video.kms_service.service.UserKeyManagementService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/keys")
@@ -22,10 +21,24 @@ public class KeyController {
      * Génère une nouvelle paire de clés pour l'utilisateur
      */
     @PostMapping("/generate")
-    public ResponseEntity<String> generateKeyPair(@RequestBody GenerateKeyDto request) {
+    public ResponseEntity<?> generateKeyPair(@RequestBody GenerateKeyRequestDto request) {
         try {
-            keyManagementService.generateKeyPair(request);
-            return new ResponseEntity<>("Keys saved", HttpStatus.OK);
+            GeneratedKeyResultDto result = keyManagementService.generateKeyPair(request);
+            String keyName = result.getSavedKey().getKeyName();
+            String privateKey = result.getPrivateKey();
+
+            // Contenu du fichier
+            byte[] data = privateKey.getBytes(StandardCharsets.UTF_8);
+            ByteArrayResource resource = new ByteArrayResource(data);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + keyName + ".pem\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentLength(data.length)
+                    .cacheControl(CacheControl.noStore()) // très important
+                    .body(resource);
+
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),

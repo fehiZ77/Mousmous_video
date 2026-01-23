@@ -29,6 +29,7 @@ export function GenerateKeyDialog({ open, onOpenChange, onKeyGenerated }: Genera
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showDownloadPrompt, setShowDownloadPrompt] = useState(false)
 
   const [formData, setFormData] = useState<GenerateKeyDto>({
     keyName: "",
@@ -39,7 +40,6 @@ export function GenerateKeyDialog({ open, onOpenChange, onKeyGenerated }: Genera
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-
     try {
       if (!formData.keyName.trim()) {
         setError("Le nom de la clé est requis")
@@ -53,12 +53,39 @@ export function GenerateKeyDialog({ open, onOpenChange, onKeyGenerated }: Genera
         return
       }
 
-      await keyService.generateKeyPair(formData)
+      // N'effectue pas encore la génération : afficher la popup de téléchargement
+      setShowDownloadPrompt(true)
+      setIsLoading(false)
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || "Erreur lors de la génération de la clé"
+      setError(typeof errorMessage === "string" ? errorMessage : "Erreur de génération")
+      setIsLoading(false)
+    }
+  }
 
+  const handleDownload = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const privateKey = await keyService.generateKeyPair(formData)
+
+      const filename = `${formData.keyName.trim() || "private-key"}.pem`
+      const blob = new Blob([privateKey], { type: "application/x-pem-file" })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+
+      // Indiquer le succès et rafraîchir la liste
+      setShowDownloadPrompt(false)
       setSuccess(true)
       setIsLoading(false)
 
-      // Rafraîchir la liste des clés
       if (onKeyGenerated) {
         onKeyGenerated()
       }
@@ -66,10 +93,7 @@ export function GenerateKeyDialog({ open, onOpenChange, onKeyGenerated }: Genera
       setTimeout(() => {
         onOpenChange(false)
         setSuccess(false)
-        setFormData({
-          keyName: "",
-          validity: 12,
-        })
+        setFormData({ keyName: "", validity: 12 })
       }, 2000)
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Erreur lors de la génération de la clé"
@@ -97,8 +121,9 @@ export function GenerateKeyDialog({ open, onOpenChange, onKeyGenerated }: Genera
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border sm:max-w-lg">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="bg-card border-border sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Générer une nouvelle clé</DialogTitle>
           <DialogDescription>
@@ -160,6 +185,49 @@ export function GenerateKeyDialog({ open, onOpenChange, onKeyGenerated }: Genera
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      <Dialog open={showDownloadPrompt} onOpenChange={setShowDownloadPrompt}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Télécharger la clé privée</DialogTitle>
+            <DialogDescription>
+              Vous pouvez télécharger votre clé privée sous le nom de <strong>{formData.keyName || "private-key"}.pem</strong>
+            </DialogDescription>
+          </DialogHeader>
+           <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="space-y-2">
+              <p>
+                <strong>Attention :</strong> cette clé privée est générée{" "}
+                <strong>une seule fois</strong>.
+              </p>
+              <ul className="list-disc pl-4 text-sm">
+                <li>Elle ne pourra <strong>jamais être récupérée</strong> plus tard.</li>
+                <li>Conservez-la dans un endroit <strong>sûr et hors ligne</strong>.</li>
+                <li>Ne la partagez <strong>jamais</strong> (même avec un admin).</li>
+                <li>Si vous la perdez, vous devrez <strong>générer une nouvelle clé</strong>.</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowDownloadPrompt(false)}>
+              Annuler
+            </Button>
+            <Button type="button" onClick={handleDownload} disabled={isLoading}>
+              {isLoading ? "Génération en cours..." : "Télécharger"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
