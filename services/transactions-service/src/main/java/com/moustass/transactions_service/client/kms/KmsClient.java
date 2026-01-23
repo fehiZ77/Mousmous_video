@@ -15,11 +15,12 @@ public class KmsClient {
         this.webClient = webClient;
     }
 
-    public String signFile(Long userId, Long keyId, String fileHash) {
+    public String signFile(Long userId, Long keyId, String fileHash, String privateKey) {
         KmsSignRequest req = new KmsSignRequest();
         req.setUserId(userId);
         req.setKeyId(keyId);
         req.setFileHash(fileHash);
+        req.setPrivateKey(privateKey);
 
         String token = SecurityUtil.getCurrentToken();
 

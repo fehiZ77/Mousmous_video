@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -51,7 +52,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public boolean verifyTransaction(VerifyTransactionDto dto, String token) throws Exception{
+    public boolean verifyTransaction(VerifyTransactionDto dto) throws Exception{
         try {
             Media media = mediaRepository.findByTransactionId(dto.getTransactionId())
                     .orElseThrow(() -> new RuntimeException("Media not found for transaction " + dto.getTransactionId()));
@@ -112,12 +113,13 @@ public class TransactionService {
 
     @Transactional
     public void createTransaction(TransactionRequestDto dto) throws Exception{
-        Transaction transaction = new Transaction(dto.getOwner_id(), dto.getRecipient_id(), dto.getAmount(), dto.getValidity());
+        Transaction transaction = new Transaction(dto.getOwnerId(), dto.getRecipientId(), dto.getAmount(), dto.getValidity());
         String fileHash = hashFile(dto.getVideo());
         String signature = kmsClient.signFile(
-                dto.getOwner_id(),
+                dto.getOwnerId(),
                 dto.getKeyId(),
-                fileHash
+                fileHash,
+                readPrivateKeyFromFile(dto.getSk())
         );
         String storageMiniIO = minIOService.processMinIOStorage(dto.getVideo());
 
@@ -137,13 +139,15 @@ public class TransactionService {
                 new AuditRequestDto(
                         serviceName,
                         AuditAction.TRANSACTION_CREATED.name(),
-                        "Transaction de " + dto.getOwner_id() + " vers " + dto.getRecipient_id() + ": MUR " +dto.getAmount(),
+                        "Transaction de " + dto.getOwnerId() + " vers " + dto.getRecipientId() + ": MUR " +dto.getAmount(),
                         AuditRequestDto.Status.SUCCES,
                         LocalDateTime.now().toString()
                 )
         );
     }
 
+
+    // =========================== PRIVATE KEY ===========================
     /**
      * Hash un fichier avec SHA-256
      */
@@ -151,5 +155,17 @@ public class TransactionService {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(file.getBytes());
         return Base64.getEncoder().encodeToString(hash);
+    }
+
+    private String readPrivateKeyFromFile(MultipartFile privateKeyFile) throws Exception {
+
+        if (privateKeyFile == null || privateKeyFile.isEmpty()) {
+            throw new IllegalArgumentException("Fichier de clé privée manquant");
+        }
+
+        return new String(
+                privateKeyFile.getBytes(),
+                StandardCharsets.UTF_8
+        );
     }
 }

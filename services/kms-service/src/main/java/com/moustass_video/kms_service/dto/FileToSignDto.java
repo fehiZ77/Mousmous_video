@@ -4,6 +4,15 @@ public class FileToSignDto {
     private Long userId;
     private Long keyId;
     private String fileHash;
+    private String privateKey;
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
 
     public String getFileHash() {
         return fileHash;
