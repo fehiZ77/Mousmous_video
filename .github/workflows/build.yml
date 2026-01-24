@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 17
-          distribution: 'temurin'
+          distribution: temurin
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -38,20 +38,19 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build backend services
-        run: mvn -B clean install
+        run: mvn -B clean verify
 
       - name: SonarCloud Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B sonar:sonar \
             -Dsonar.projectKey=fehiz_moustas-video \
             -Dsonar.organization=fehiz \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.exclusions=**/node_modules/**,**/vendor/**,**/dist/**
+            -Dsonar.host.url=https://sonarcloud.io
 
       - name: Build frontend React
         working-directory: frontend
         run: |
-          npm install
+          npm ci
           npm run build
