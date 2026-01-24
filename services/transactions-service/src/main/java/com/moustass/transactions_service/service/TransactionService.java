@@ -1,10 +1,12 @@
 package com.moustass.transactions_service.service;
 
-import com.moustass.transactions_service.client.audit.AuditAction;
+import com.moustass.transactions_service.client.TransactionAction;
 import com.moustass.transactions_service.client.audit.AuditClient;
 import com.moustass.transactions_service.client.audit.AuditRequestDto;
 import com.moustass.transactions_service.client.minio.MinIOService;
 import com.moustass.transactions_service.client.kms.KmsClient;
+import com.moustass.transactions_service.client.notification.NotificationClient;
+import com.moustass.transactions_service.client.notification.NotificationRequestDto;
 import com.moustass.transactions_service.client.users.UserClient;
 import com.moustass.transactions_service.dto.TransactionResponseDto;
 import com.moustass.transactions_service.dto.TransactionRequestDto;
@@ -23,15 +25,19 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final MediaRepository mediaRepository;
+
+    // Service
     private final KmsClient kmsClient;
     private final MinIOService minIOService;
     private final UserClient userClient;
     private final AuditClient auditClient;
+    private final NotificationClient notificationClient;
 
     private final String serviceName = "TRANSACTION";
 
@@ -41,7 +47,8 @@ public class TransactionService {
             KmsClient kmsClient,
             MinIOService minIOService,
             UserClient userClient,
-            AuditClient auditClient
+            AuditClient auditClient,
+            NotificationClient notificationClient
     ) {
         this.transactionRepository = transactionRepository;
         this.mediaRepository = mediaRepository;
@@ -49,6 +56,7 @@ public class TransactionService {
         this.minIOService = minIOService;
         this.userClient = userClient;
         this.auditClient = auditClient;
+        this.notificationClient = notificationClient;
     }
 
     @Transactional
@@ -69,22 +77,35 @@ public class TransactionService {
                         TransactionStatus.VERIFIED
                 );
             }
+            String transactionStatusStr = isFileOk ? TransactionAction.TRANSACTION_VERIFIED.name() : TransactionAction.TRANSACTION_VERIFIED_NOK.name();
+
             auditClient.createAudit(
                     new AuditRequestDto(
                             serviceName,
-                            isFileOk ? AuditAction.TRANSACTION_VERIFIED.name() : AuditAction.TRANSACTION_VERIFIED_NOK.name(),
-                            "Transaction non valide",
+                            transactionStatusStr,
+                            isFileOk ? "Transaction valide" : "Transaction non valide",
                             isFileOk ? AuditRequestDto.Status.SUCCES : AuditRequestDto.Status.FAILED,
                             LocalDateTime.now().toString()
                     )
             );
+
+            Optional<Transaction> transaction = transactionRepository.findById(dto.getTransactionId());
+
+            notificationClient.createNotification(
+                    new NotificationRequestDto(
+                            transaction.map(Transaction::getRecipientId).orElse(null),
+                            transaction.map(Transaction::getOwnerId).orElse(null),
+                            transactionStatusStr
+                    )
+            );
+
             return isFileOk;
         } catch (Exception e) {
             throw new Exception(e);
         }
     }
 
-    public List<TransactionResponseDto> getTransactions(Long userId, String token, boolean isOwner){
+    public List<TransactionResponseDto> getTransactions(Long userId, boolean isOwner){
         List<Transaction> transactions = isOwner ? transactionRepository.findByOwnerId(userId)
                                         : transactionRepository.findByRecipientId(userId);
 
@@ -95,7 +116,7 @@ public class TransactionService {
                             .orElseThrow(() -> new RuntimeException("Media not found for transaction " + transaction.getId()));
 
                     // Récupérer le nom d'utilisateur du créateur
-                    String userName = userClient.getUserName(isOwner ? transaction.getRecipientId() : transaction.getOwnerId(), token);
+                    String userName = userClient.getUserName(isOwner ? transaction.getRecipientId() : transaction.getOwnerId());
 
                     // Construire le DTO
                     return new TransactionResponseDto(
@@ -138,16 +159,24 @@ public class TransactionService {
         auditClient.createAudit(
                 new AuditRequestDto(
                         serviceName,
-                        AuditAction.TRANSACTION_CREATED.name(),
+                        TransactionAction.TRANSACTION_CREATED.name(),
                         "Transaction de " + dto.getOwnerId() + " vers " + dto.getRecipientId() + ": MUR " +dto.getAmount(),
                         AuditRequestDto.Status.SUCCES,
                         LocalDateTime.now().toString()
                 )
         );
+
+        notificationClient.createNotification(
+                new NotificationRequestDto(
+                        transaction.getOwnerId(),
+                        transaction.getRecipientId(),
+                        TransactionAction.TRANSACTION_CREATED.name()
+                )
+        );
     }
 
 
-    // =========================== PRIVATE KEY ===========================
+    // =========================== PRIVATE FUNCTION ===========================
     /**
      * Hash un fichier avec SHA-256
      */

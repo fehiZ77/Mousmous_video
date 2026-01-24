@@ -1,40 +1,48 @@
 import api from "../axios";
 
 export interface Notification {
-  id: number;
-  triggerId: number;
-  receivedId: number;
-  action: "TRANSACTION_CREATED" | "TRANSACTION_VERIFIED_OK" | "TRANSACTION_VERIFIED_NOK";
-  transactionId: number;
-  dateSeenAt: string | null;
+  detail: string;
+  timePassed: string;
 }
 
 const getNotificationsForUser = async (userId: number): Promise<Notification[]> => {
-  // const response = await api.get(`/notifications/user/${userId}`);
-  // return response.data;
-  return [];
+  try {
+    const response = await api.get(`/notifications/not-seen?userId=${userId}`);
+    return response.data || [];
+  } catch (error) {
+    console.error("Erreur lors de la récupération des notifications:", error);
+    return [];
+  }
 };
 
-const createNotification = async (notification: Omit<Notification, "id" | "dateSeenAt" | "dateCreated">): Promise<Notification> => {
+const createNotification = async (notification: Notification): Promise<Notification> => {
   // const response = await api.post("/notifications/create", notification);
   // return response.data;
-  return { ...notification, id: 0, dateSeenAt: null};
+  return notification;
 };
 
-const markAsSeen = async (id: number): Promise<Notification> => {
+const markAsSeen = async (id: number): Promise<void> => {
   // const response = await api.put(`/notifications/${id}/seen`);
   // return response.data;
-  return { id, triggerId: 0, receivedId: 0, action: "TRANSACTION_CREATED", transactionId: 0, dateSeenAt: new Date().toISOString() };
 };
 
 const getAllNotificationsForUser = async (userId: number): Promise<Notification[]> => {
-  // const response = await api.get(`/notifications/user/${userId}/all`);
-  // return response.data;
-  return [];
+  try {
+    const response = await api.get(`/notifications/all?userId=${userId}`);
+    return response.data || [];
+  } catch (error) {
+    console.error("Erreur lors de la récupération de toutes les notifications:", error);
+    return [];
+  }
 };
 
 const markAllAsSeen = async (userId: number): Promise<void> => {
-  await api.put(`/notifications/user/${userId}/mark-all-seen`);
+  try {
+    await api.put(`/notifications/mark-all-seen?userId=${userId}`);
+  } catch (error) {
+    console.error("Erreur lors du marquage de toutes les notifications:", error);
+    throw error;
+  }
 };
 
 export const NotificationService = {
