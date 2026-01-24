@@ -16,7 +16,7 @@ public class AuditClient {
 
     public void createAudit(AuditRequestDto audit) {
 
-        if(audit.getToken() == null || audit.getToken().equals("")){
+        if(audit.getToken() == null || audit.getToken().equals("")){    // We need this for ths
             String token = SecurityUtil.getCurrentToken();
             audit.setToken(token);
         }

@@ -1,4 +1,4 @@
-package com.moustass.transactions_service.client.users;
+package com.moustass.transactions_service.client.notification;
 
 import com.moustass.transactions_service.utils.SecurityUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,25 +7,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-public class UserClient {
+public class NotificationClient {
     private final WebClient webClient;
 
-    public UserClient(@Qualifier("usersWebClient") WebClient webClient) {
+    public NotificationClient(@Qualifier("notificationWebClient") WebClient webClient) {
         this.webClient = webClient;
     }
 
-    public String getUserName(Long userId) {
-
+    public void createNotification(NotificationRequestDto notificationRequestDto){
         String token = SecurityUtil.getCurrentToken();
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/nameUser")
-                        .queryParam("userId", userId)
-                        .build()
-                )
+
+        webClient.post()
+                .uri("/create")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .bodyValue(notificationRequestDto)
                 .retrieve()
-                .bodyToMono(String.class)
-                .block(); // synchrone
+                .toBodilessEntity()   // on ne récupère pas de body car void
+                .block();
+        
     }
 }

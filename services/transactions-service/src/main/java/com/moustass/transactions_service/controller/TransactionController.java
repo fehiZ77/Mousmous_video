@@ -63,12 +63,10 @@ public class TransactionController {
     @GetMapping("/all")
     public ResponseEntity<?> getTransactions(
             @RequestParam("isOwner") boolean isOwner,
-            @RequestParam("userId") Long userId,
-            @RequestHeader("Authorization") String authHeader
+            @RequestParam("userId") Long userId
     ) {
-        String token = authHeader.substring(7);
         try {
-            return new ResponseEntity<>(transactionService.getTransactions(userId, token, isOwner), HttpStatus.OK);
+            return new ResponseEntity<>(transactionService.getTransactions(userId, isOwner), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),
@@ -86,8 +84,7 @@ public class TransactionController {
             @RequestParam("keyId") Long keyId,
             @RequestParam("publicKey") String publicKey,
             @RequestPart("video") MultipartFile video,
-            @RequestPart("sk") MultipartFile sk,
-            @RequestHeader("Authorization") String authHeader
+            @RequestPart("sk") MultipartFile sk
     ) {
         try {
             String filename = sk.getOriginalFilename();

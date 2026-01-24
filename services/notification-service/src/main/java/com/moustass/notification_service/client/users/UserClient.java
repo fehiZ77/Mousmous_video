@@ -1,6 +1,6 @@
-package com.moustass.transactions_service.client.users;
+package com.moustass.notification_service.client.users;
 
-import com.moustass.transactions_service.utils.SecurityUtil;
+import com.moustass.notification_service.utils.SecurityUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
