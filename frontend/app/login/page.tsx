@@ -24,6 +24,11 @@ export default function LoginPage() {
     mdp: "",
   })
 
+  // Supprimer le token au chargement de la page
+  useEffect(() => {
+    authService.logout()
+  }, [])
+
   // Vérifier si l'utilisateur est déjà authentifié
   useEffect(() => {
     if (isAuthenticated()) {
