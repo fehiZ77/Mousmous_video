@@ -14,12 +14,7 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <!-- Chemins vers les rapports JaCoCo pour tous les modules -->
     <sonar.coverage.jacoco.xmlReportPaths>
-      ${project.basedir}/api-gateway/target/site/jacoco/jacoco.xml,
-      ${project.basedir}/services/auth-service/target/site/jacoco/jacoco.xml,
-      ${project.basedir}/services/audit-service/target/site/jacoco/jacoco.xml,
-      ${project.basedir}/services/kms-service/target/site/jacoco/jacoco.xml,
-      ${project.basedir}/services/notification-service/target/site/jacoco/jacoco.xml,
-      ${project.basedir}/services/transactions-service/target/site/jacoco/jacoco.xml
+      ${project.basedir}/coverage-report/target/site/jacoco-aggregate/jacoco.xml
     </sonar.coverage.jacoco.xmlReportPaths>
   </properties>
 
