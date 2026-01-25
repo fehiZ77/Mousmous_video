@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react"
 import { usePathname } from "next/navigation"
-import { Spinner } from "@/components/ui/spinner"
 
 export function CustomLoadingBar() {
   const [isLoading, setIsLoading] = useState(false)
@@ -65,12 +64,47 @@ export function CustomLoadingBar() {
     }
   }, [])
 
+  useEffect(() => {
+    // Appliquer ou retirer la transparence à la page pendant le chargement
+    if (isLoading) {
+      document.body.style.opacity = "0.5"
+      document.body.style.pointerEvents = "none"
+    } else {
+      document.body.style.opacity = "1"
+      document.body.style.pointerEvents = "auto"
+    }
+
+    return () => {
+      document.body.style.opacity = "1"
+      document.body.style.pointerEvents = "auto"
+    }
+  }, [isLoading])
+
   if (!isLoading) return null
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-lg bg-card border border-border px-4 py-2.5 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200">
-      <Spinner className="w-4 h-4 text-primary" />
-      <span className="text-sm font-medium text-foreground">Chargement...</span>
-    </div>
+    <>
+      <style>{`
+        @keyframes ht {
+          100% { height: 0px }
+        }
+        
+        .loader {
+          height: 30px;
+          width: 10px;
+          border-radius: 4px;
+          color: #fff;
+          background: currentColor;
+          position: relative;
+          animation: ht 1s ease-in infinite alternate;
+          box-shadow: 15px 0 0 -1px, -15px 0 0 -1px,
+                      30px 0 0 -2px, -30px 0 0 -2px,
+                      45px 0 0 -3px, -45px 0 0 -3px;
+        }
+      `}</style>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent">
+        <span className="loader"></span>
+      </div>
+    </>
   )
 }

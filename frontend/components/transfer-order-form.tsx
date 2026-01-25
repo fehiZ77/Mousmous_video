@@ -343,20 +343,6 @@ export function TransferOrderForm() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="validity">Validité (en mois)</Label>
-                  <Select value={validity} onValueChange={setValidity}>
-                    <SelectTrigger className="bg-input border-border" id="validity">
-                      <SelectValue placeholder="Sélectionner une durée" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 mois</SelectItem>
-                      <SelectItem value="3">3 mois</SelectItem>
-                      <SelectItem value="6">6 mois</SelectItem>
-                      <SelectItem value="12">12 mois</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div className="flex justify-between">
