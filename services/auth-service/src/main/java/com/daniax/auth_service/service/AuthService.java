@@ -106,9 +106,14 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginUserDto loginUserDto) throws Exception{
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginUserDto.getUserName(), loginUserDto.getMdp())
-        );
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginUserDto.getUserName(), loginUserDto.getMdp())
+            );
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            throw new Exception("Invalid mdp or user");
+        }
         if(authentication.isAuthenticated()){
             User user = userRepository.findByUserName(loginUserDto.getUserName());
 
