@@ -12,6 +12,9 @@ public class TransactionRequestDto {
     private MultipartFile video;
     private MultipartFile sk;
 
+    public TransactionRequestDto() {
+    }
+
     public TransactionRequestDto(
             Long ownerId,
             Long recipientId,

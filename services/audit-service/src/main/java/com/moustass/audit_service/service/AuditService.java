@@ -26,11 +26,11 @@ import java.util.stream.Stream;
 public class AuditService {
     private final JwtUtils jwtUtils;
 
-    private static final String LOG_DIRECTORY = "/logs";
-    private static final String LOG_FILE = "/logs/audit.log";   // A refactorer kely fa comique be
+    private static String LOG_DIRECTORY = "/logs";
+    private static String LOG_FILE = "/logs/audit.log";   // A refactorer kely fa comique be
 
     private static final String GENESIS = "0000";
-    private static final Path LOG_DIR = Path.of(LOG_DIRECTORY);
+    private static Path LOG_DIR = Path.of(LOG_DIRECTORY);
 
     public AuditService(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
@@ -55,6 +55,7 @@ public class AuditService {
         String date = LocalDateTime.now().toString();
 
         String token = SecurityUtil.getCurrentToken();
+        if (token == null) token = "";
         Map<String, Object> tokenData = jwtUtils.tokenData(token);
         Long userId = (Long)tokenData.get("userId");
         long lineNumber = getNextLineNumber();
