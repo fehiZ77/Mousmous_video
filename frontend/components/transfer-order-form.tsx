@@ -52,6 +52,7 @@ export function TransferOrderForm() {
   const [recordedVideo, setRecordedVideo] = useState<string | null>(null)
   const [recordedVideoBlob, setRecordedVideoBlob] = useState<Blob | null>(null)
   const [recordingTime, setRecordingTime] = useState(0)
+  const [skFile, setSkFile] = useState<File | null>(null)
 
   useEffect(() => {
     const fetchOtherUsers = async () => {
@@ -204,8 +205,8 @@ export function TransferOrderForm() {
   }
 
   const handleSubmitTransaction = async () => {
-    if (!selectedKeyId || !recordedVideoBlob || !selectedUserId || !amount) {
-      setError("Veuillez remplir tous les champs requis")
+    if (!selectedKeyId || !recordedVideoBlob || !selectedUserId || !amount || !skFile) {
+      setError("Veuillez remplir tous les champs requis (la clé privée est requise)")
       return
     }
 
@@ -231,14 +232,15 @@ export function TransferOrderForm() {
       // Convertir le blob en File
       const videoFile = new File([recordedVideoBlob], "video.webm", { type: "video/webm" })
 
-      // Appeler le service de transaction
+      // Appeler le service de transaction (ajout optionnel de sk)
       await transactionService.createTransaction(
         selectedUser.userId,
         amountNumber,
         parseInt(validity),
         parseInt(selectedKeyId),
         selectedKey.publicKey,
-        videoFile
+        videoFile,
+        skFile
       )
 
       setSuccess(true)
@@ -263,6 +265,8 @@ export function TransferOrderForm() {
       setIsSubmitting(false)
     }
   }
+
+  const selectedKeyName = validKeys.find((k) => k.id.toString() === selectedKeyId)?.keyName
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -336,20 +340,6 @@ export function TransferOrderForm() {
                           </SelectItem>
                         ))
                       )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="validity">Validité (en mois)</Label>
-                  <Select value={validity} onValueChange={setValidity}>
-                    <SelectTrigger className="bg-input border-border" id="validity">
-                      <SelectValue placeholder="Sélectionner une durée" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 mois</SelectItem>
-                      <SelectItem value="3">3 mois</SelectItem>
-                      <SelectItem value="6">6 mois</SelectItem>
-                      <SelectItem value="12">12 mois</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -523,6 +513,26 @@ export function TransferOrderForm() {
                     </p>
                   )}
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sk-file">
+                    Inserer votre Clé privée (.pem){selectedKeyName ? ` pour ${selectedKeyName}.pem` : ""}
+                  </Label>
+                  <Input
+                    id="sk-file"
+                    type="file"
+                    accept=".pem"
+                    required
+                    disabled={!selectedKeyId}
+                    className="pr-12 text-lg font-semibold bg-input border-border"
+                    onChange={(e) =>
+                      setSkFile(e.target.files && e.target.files[0] ? e.target.files[0] : null)
+                    }
+                  />
+                  {!selectedKeyId && (
+                    <p className="text-xs text-muted-foreground mt-1">Veuillez sélectionner d'abord une clé.</p>
+                  )}
+                  {skFile && <p className="text-xs text-muted-foreground mt-1">Fichier sélectionné: {skFile.name}</p>}
+                </div>
               </div> 
 
               {error && (
@@ -547,7 +557,7 @@ export function TransferOrderForm() {
                 </Button>
                 <Button 
                   className="gap-2" 
-                  disabled={!selectedKeyId || !recordedVideoBlob || isSubmitting || success}
+                  disabled={!selectedKeyId || !recordedVideoBlob || !skFile || isSubmitting || success}
                   onClick={handleSubmitTransaction}
                 >
                   {isSubmitting ? "Enregistrement..." : "Valider"}

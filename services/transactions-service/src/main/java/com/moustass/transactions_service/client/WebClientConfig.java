@@ -27,4 +27,24 @@ public class WebClientConfig {
                 .baseUrl(usersnUrl)
                 .build();
     }
+
+    @Bean
+    @Qualifier("auditWebClient")
+    public WebClient auditWebClient(
+            @Value("${client.audit.service}") String auditUrl
+    ) {
+        return WebClient.builder()
+                .baseUrl(auditUrl)
+                .build();
+    }
+
+    @Bean
+    @Qualifier("notificationWebClient")
+    public WebClient notificationWebClient(
+            @Value("${client.notification.service}") String notificationUrl
+    ) {
+        return WebClient.builder()
+                .baseUrl(notificationUrl)
+                .build();
+    }
 }

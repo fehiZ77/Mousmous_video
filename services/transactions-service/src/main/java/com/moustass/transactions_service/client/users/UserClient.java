@@ -1,5 +1,6 @@
 package com.moustass.transactions_service.client.users;
 
+import com.moustass.transactions_service.utils.SecurityUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -13,8 +14,9 @@ public class UserClient {
         this.webClient = webClient;
     }
 
-    public String getUserName(Long userId, String token) {
+    public String getUserName(Long userId) {
 
+        String token = SecurityUtil.getCurrentToken();
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/nameUser")

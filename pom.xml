@@ -12,9 +12,8 @@
   <modules>
     <module>api-gateway</module>
     <module>services/auth-service</module>
+    <module>services/audit-service</module>
     <module>services/kms-service</module>
-    <module>services/media-uploader-service</module>
-    <module>services/metadata-service</module>
     <module>services/notification-service</module>
     <module>services/transactions-service</module>
   </modules>

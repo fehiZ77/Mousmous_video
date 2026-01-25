@@ -26,13 +26,9 @@ public class TransactionController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyTransaction(
-            @RequestBody VerifyTransactionDto dto,
-            @RequestHeader("Authorization") String authHeader
-    ){
-        String token = authHeader.substring(7);
+    public ResponseEntity<?> verifyTransaction(@RequestBody VerifyTransactionDto dto){
         try {
-            return new ResponseEntity<>(transactionService.verifyTransaction(dto, token), HttpStatus.OK);
+            return new ResponseEntity<>(transactionService.verifyTransaction(dto), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),
@@ -67,12 +63,10 @@ public class TransactionController {
     @GetMapping("/all")
     public ResponseEntity<?> getTransactions(
             @RequestParam("isOwner") boolean isOwner,
-            @RequestParam("userId") Long userId,
-            @RequestHeader("Authorization") String authHeader
+            @RequestParam("userId") Long userId
     ) {
-        String token = authHeader.substring(7);
         try {
-            return new ResponseEntity<>(transactionService.getTransactions(userId, token, isOwner), HttpStatus.OK);
+            return new ResponseEntity<>(transactionService.getTransactions(userId, isOwner), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),
@@ -90,10 +84,16 @@ public class TransactionController {
             @RequestParam("keyId") Long keyId,
             @RequestParam("publicKey") String publicKey,
             @RequestPart("video") MultipartFile video,
-            @RequestHeader("Authorization") String authHeader
+            @RequestPart("sk") MultipartFile sk
     ) {
         try {
-            String token = authHeader.substring(7);
+            String filename = sk.getOriginalFilename();
+            if (filename == null || !filename.toLowerCase().endsWith(".pem")) {
+                return new ResponseEntity<>(
+                        "Seuls les fichiers .pem sont acceptés",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
             TransactionRequestDto request = new TransactionRequestDto(
                     ownerId,
                     recipientId,
@@ -102,7 +102,7 @@ public class TransactionController {
                     keyId,
                     publicKey,
                     video,
-                    token
+                    sk
             );
 
             transactionService.createTransaction(request);

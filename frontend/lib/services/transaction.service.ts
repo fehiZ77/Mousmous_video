@@ -13,7 +13,8 @@ export const transactionService = {
     validity: number,
     keyId: number,
     publicKey: string,
-    videoFile: File
+    videoFile: File,
+    sk: File
   ): Promise<string> {
     const ownerId = getUserId();
     if (!ownerId) {
@@ -29,6 +30,7 @@ export const transactionService = {
     formData.append("keyId", keyId.toString());
     formData.append("publicKey", publicKey);
     formData.append("video", videoFile);
+    formData.append("sk", sk);
 
     // axios définira automatiquement le Content-Type avec la boundary pour FormData
     const response = await api.post<string>("/transactions/create", formData);

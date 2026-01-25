@@ -18,18 +18,24 @@ public class Notification {
     @Column(name = "received_id", nullable = false)
     private Long receivedId;
 
+    @Column(name = "date_created_at")
+    private LocalDateTime dateCreatedAt;
+
     @Column(name = "date_seen_at")
     private LocalDateTime dateSeenAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "notif_action", nullable = false)
     private Action action;
 
-    @Column(name = "transaction_id", nullable = false)
-    private Long transactionId;
+    public Notification(){}
 
-    public enum Action {
-        TRANSACTION_CREATED, TRANSACTION_VERIFIED_OK, TRANSACTION_VERIFIED_NOK
+    public Notification(Long triggerId, Long receivedId, String actionStr) {
+        this.triggerId = triggerId;
+        this.receivedId = receivedId;
+        this.action = Action.valueOf(actionStr);
+        this.setDateSeenAt(null);
+        this.setDateCreatedAt(LocalDateTime.now());
     }
 
     public Long getId() {
@@ -72,11 +78,11 @@ public class Notification {
         this.action = action;
     }
 
-    public Long getTransactionId() {
-        return transactionId;
+    public LocalDateTime getDateCreatedAt() {
+        return dateCreatedAt;
     }
 
-    public void setTransactionId(Long transactionId) {
-        this.transactionId = transactionId;
+    public void setDateCreatedAt(LocalDateTime dateCreatedAt) {
+        this.dateCreatedAt = dateCreatedAt;
     }
 }

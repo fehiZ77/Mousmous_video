@@ -128,29 +128,25 @@ export function DashboardHeader() {
               </div>
             ) : (
               <div className="max-h-96 overflow-y-auto">
-                {notifications.slice(0, 5).map((notification) => (
+                {notifications.slice(0, 5).map((notification, index) => (
                   <DropdownMenuItem
-                    key={notification.id}
+                    key={index}
                     className="flex flex-col items-start p-3 cursor-pointer"
                     onClick={() => router.push("/notifications")}
                   >
-                    <div className="flex items-center justify-between w-full mb-1">
-                      <span className="text-xs font-medium">
-                        {notification.action === "TRANSACTION_CREATED"
-                          ? "Transaction créée"
-                          : notification.action === "TRANSACTION_VERIFIED_OK"
-                            ? "Transaction vérifiée (OK)"
-                            : "Transaction vérifiée (NOK)"}
-                      </span>
+                    <div className="flex items-start justify-between w-full gap-2">
+                      <div className="flex-1">
+                        <span className="text-sm font-medium">{notification.detail}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{notification.timePassed}</span>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-5 w-5 p-0"
+                        className="h-5 w-5 p-0 flex-shrink-0"
                         onClick={async (e) => {
                           e.stopPropagation()
                           try {
-                            await NotificationService.markAsSeen(notification.id)
-                            setNotifications((prev) => prev.filter((n) => n.id !== notification.id))
+                            setNotifications((prev) => prev.filter((_, i) => i !== index))
                             setUnreadCount((prev) => Math.max(0, prev - 1))
                           } catch (err) {
                             console.error("Erreur lors du marquage de la notification:", err)
@@ -160,9 +156,6 @@ export function DashboardHeader() {
                         <CheckCircle2 className="h-3 w-3" />
                       </Button>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      Transaction ID: {notification.transactionId}
-                    </span>
                   </DropdownMenuItem>
                 ))}
                 {notifications.length > 5 && (

@@ -6,6 +6,7 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
@@ -14,20 +15,32 @@ public class SignatureService {
     /**
      * Signe un hash avec une clé privée RSA
      */
+
+    private final String RSA = "RSA";
+    private final String SHA256withRSA = "SHA256withRSA";
+
     public String signHash(String hashBase64, String privateKeyBase64) throws Exception {
-        // Décoder la clé privée
-        byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyBase64);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+        try {
+            // Décoder la clé privée
+            byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyBase64);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance(RSA);
+            PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
-        // Signer
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initSign(privateKey);
-        signature.update(Base64.getDecoder().decode(hashBase64));
+            // Signer
+            Signature signature = Signature.getInstance(SHA256withRSA);
+            signature.initSign(privateKey);
+            signature.update(Base64.getDecoder().decode(hashBase64));
 
-        byte[] signatureBytes = signature.sign();
-        return Base64.getEncoder().encodeToString(signatureBytes);
+            byte[] signatureBytes = signature.sign();
+            return Base64.getEncoder().encodeToString(signatureBytes);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Private key is not valid Base64");
+        } catch (InvalidKeySpecException e) {
+            throw new RuntimeException("Private key format is invalid or corrupted");
+        } catch (Exception e) {
+            throw new RuntimeException("Signing failed");
+        }
     }
 
     /**
@@ -35,19 +48,25 @@ public class SignatureService {
      */
     public boolean verifySignature(String hashBase64, String signatureBase64, String publicKeyBase64) throws Exception {
 
+        // Décoder la clé publique, si elle est invalide -> exception explicite
         try {
-            // Décoder la clé publique
             byte[] publicKeyBytes = Base64.getDecoder().decode(publicKeyBase64);
             java.security.spec.X509EncodedKeySpec keySpec = new java.security.spec.X509EncodedKeySpec(publicKeyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeyFactory keyFactory = KeyFactory.getInstance(RSA);
             PublicKey publicKey = keyFactory.generatePublic(keySpec);
 
-            // Vérifier la signature
-            Signature signature = Signature.getInstance("SHA256withRSA");
+            Signature signature = Signature.getInstance(SHA256withRSA);
             signature.initVerify(publicKey);
             signature.update(Base64.getDecoder().decode(hashBase64));
 
-            byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
+            // Décoder la signature; si base64 invalide -> considérer la vérification comme fausse
+            byte[] signatureBytes;
+            try {
+                signatureBytes = Base64.getDecoder().decode(signatureBase64);
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+
             return signature.verify(signatureBytes);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid Base64 public key");

@@ -1,7 +1,12 @@
 package com.moustass.transactions_service.service;
 
+import com.moustass.transactions_service.client.TransactionAction;
+import com.moustass.transactions_service.client.audit.AuditClient;
+import com.moustass.transactions_service.client.audit.AuditRequestDto;
 import com.moustass.transactions_service.client.minio.MinIOService;
 import com.moustass.transactions_service.client.kms.KmsClient;
+import com.moustass.transactions_service.client.notification.NotificationClient;
+import com.moustass.transactions_service.client.notification.NotificationRequestDto;
 import com.moustass.transactions_service.client.users.UserClient;
 import com.moustass.transactions_service.dto.TransactionResponseDto;
 import com.moustass.transactions_service.dto.TransactionRequestDto;
@@ -15,28 +20,47 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final MediaRepository mediaRepository;
+
+    // Service
     private final KmsClient kmsClient;
     private final MinIOService minIOService;
     private final UserClient userClient;
+    private final AuditClient auditClient;
+    private final NotificationClient notificationClient;
 
-    public TransactionService(TransactionRepository transactionRepository, MediaRepository mediaRepository, KmsClient kmsClient, MinIOService minIOService, UserClient userClient) {
+    private final String serviceName = "TRANSACTION";
+
+    public TransactionService(
+            TransactionRepository transactionRepository,
+            MediaRepository mediaRepository,
+            KmsClient kmsClient,
+            MinIOService minIOService,
+            UserClient userClient,
+            AuditClient auditClient,
+            NotificationClient notificationClient
+    ) {
         this.transactionRepository = transactionRepository;
         this.mediaRepository = mediaRepository;
         this.kmsClient = kmsClient;
         this.minIOService = minIOService;
         this.userClient = userClient;
+        this.auditClient = auditClient;
+        this.notificationClient = notificationClient;
     }
 
     @Transactional
-    public boolean verifyTransaction(VerifyTransactionDto dto, String token) throws Exception{
+    public boolean verifyTransaction(VerifyTransactionDto dto) throws Exception{
         try {
             Media media = mediaRepository.findByTransactionId(dto.getTransactionId())
                     .orElseThrow(() -> new RuntimeException("Media not found for transaction " + dto.getTransactionId()));
@@ -44,8 +68,7 @@ public class TransactionService {
             boolean isFileOk = kmsClient.verifyFile(
                     dto.getPublicKey(),
                     media.getVideoHash(),
-                    media.getVideoSig(),
-                    token
+                    media.getVideoSig()
             );
 
             if(isFileOk){
@@ -54,13 +77,35 @@ public class TransactionService {
                         TransactionStatus.VERIFIED
                 );
             }
+            String transactionStatusStr = isFileOk ? TransactionAction.TRANSACTION_VERIFIED.name() : TransactionAction.TRANSACTION_VERIFIED_NOK.name();
+
+            auditClient.createAudit(
+                    new AuditRequestDto(
+                            serviceName,
+                            transactionStatusStr,
+                            isFileOk ? "Transaction valide" : "Transaction non valide",
+                            isFileOk ? AuditRequestDto.Status.SUCCES : AuditRequestDto.Status.FAILED,
+                            LocalDateTime.now().toString()
+                    )
+            );
+
+            Optional<Transaction> transaction = transactionRepository.findById(dto.getTransactionId());
+
+            notificationClient.createNotification(
+                    new NotificationRequestDto(
+                            transaction.map(Transaction::getRecipientId).orElse(null),
+                            transaction.map(Transaction::getOwnerId).orElse(null),
+                            transactionStatusStr
+                    )
+            );
+
             return isFileOk;
         } catch (Exception e) {
             throw new Exception(e);
         }
     }
 
-    public List<TransactionResponseDto> getTransactions(Long userId, String token, boolean isOwner){
+    public List<TransactionResponseDto> getTransactions(Long userId, boolean isOwner){
         List<Transaction> transactions = isOwner ? transactionRepository.findByOwnerId(userId)
                                         : transactionRepository.findByRecipientId(userId);
 
@@ -71,7 +116,7 @@ public class TransactionService {
                             .orElseThrow(() -> new RuntimeException("Media not found for transaction " + transaction.getId()));
 
                     // Récupérer le nom d'utilisateur du créateur
-                    String userName = userClient.getUserName(isOwner ? transaction.getRecipientId() : transaction.getOwnerId(), token);
+                    String userName = userClient.getUserName(isOwner ? transaction.getRecipientId() : transaction.getOwnerId());
 
                     // Construire le DTO
                     return new TransactionResponseDto(
@@ -89,13 +134,13 @@ public class TransactionService {
 
     @Transactional
     public void createTransaction(TransactionRequestDto dto) throws Exception{
-        Transaction transaction = new Transaction(dto.getOwner_id(), dto.getRecipient_id(), dto.getAmount(), dto.getValidity());
+        Transaction transaction = new Transaction(dto.getOwnerId(), dto.getRecipientId(), dto.getAmount(), dto.getValidity());
         String fileHash = hashFile(dto.getVideo());
         String signature = kmsClient.signFile(
-                dto.getOwner_id(),
+                dto.getOwnerId(),
                 dto.getKeyId(),
                 fileHash,
-                dto.getToken()
+                readPrivateKeyFromFile(dto.getSk())
         );
         String storageMiniIO = minIOService.processMinIOStorage(dto.getVideo());
 
@@ -110,8 +155,28 @@ public class TransactionService {
         );
 
         mediaRepository.save(media);
+
+        auditClient.createAudit(
+                new AuditRequestDto(
+                        serviceName,
+                        TransactionAction.TRANSACTION_CREATED.name(),
+                        "Transaction de " + dto.getOwnerId() + " vers " + dto.getRecipientId() + ": MUR " +dto.getAmount(),
+                        AuditRequestDto.Status.SUCCES,
+                        LocalDateTime.now().toString()
+                )
+        );
+
+        notificationClient.createNotification(
+                new NotificationRequestDto(
+                        transaction.getOwnerId(),
+                        transaction.getRecipientId(),
+                        TransactionAction.TRANSACTION_CREATED.name()
+                )
+        );
     }
 
+
+    // =========================== PRIVATE FUNCTION ===========================
     /**
      * Hash un fichier avec SHA-256
      */
@@ -119,5 +184,17 @@ public class TransactionService {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(file.getBytes());
         return Base64.getEncoder().encodeToString(hash);
+    }
+
+    private String readPrivateKeyFromFile(MultipartFile privateKeyFile) throws Exception {
+
+        if (privateKeyFile == null || privateKeyFile.isEmpty()) {
+            throw new IllegalArgumentException("Fichier de clé privée manquant");
+        }
+
+        return new String(
+                privateKeyFile.getBytes(),
+                StandardCharsets.UTF_8
+        );
     }
 }

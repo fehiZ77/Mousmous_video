@@ -1,5 +1,8 @@
 package com.moustass_video.kms_service.service;
 
+import com.moustass_video.kms_service.client.audit.AuditAction;
+import com.moustass_video.kms_service.client.audit.AuditClient;
+import com.moustass_video.kms_service.client.audit.AuditRequestDto;
 import com.moustass_video.kms_service.dto.*;
 import com.moustass_video.kms_service.entity.KeyStatus;
 import com.moustass_video.kms_service.entity.UserKeys;
@@ -14,15 +17,22 @@ import java.util.List;
 @Service
 public class UserKeyManagementService {
     private final KeyPairService keyPairService;
-    private final KeyEncryptionService encryptionService;
     private final SignatureService signatureService;
     private final UserKeyRepository userKeyRepository;
+    private final AuditClient auditClient;
 
-    public UserKeyManagementService(KeyPairService keyPairService, KeyEncryptionService encryptionService, SignatureService signatureService, UserKeyRepository repository) {
+    private final String serviceName = "AUTH";
+
+    public UserKeyManagementService(
+            KeyPairService keyPairService,
+            SignatureService signatureService,
+            UserKeyRepository repository,
+            AuditClient auditClient
+    ) {
         this.keyPairService = keyPairService;
-        this.encryptionService = encryptionService;
         this.signatureService = signatureService;
         this.userKeyRepository = repository;
+        this.auditClient = auditClient;
     }
 
     public UserKeys revokeKey(RevokeKeyRequestDto dto) {
@@ -30,7 +40,18 @@ public class UserKeyManagementService {
                 .orElseThrow(() -> new RuntimeException("Key not found"));
 
         key.setStatus(KeyStatus.REVOKED);
-        return userKeyRepository.save(key);
+        key = userKeyRepository.save(key);
+        auditClient.createAudit(
+                new AuditRequestDto(
+                        serviceName,
+                        AuditAction.REVOKE_KEY.name(),
+                        "Revoke key : " + key.getId(),
+                        AuditRequestDto.Status.SUCCES,
+                        LocalDateTime.now().toString()
+                )
+        );
+
+        return key;
     }
 
     public List<UserKeys> getValidUserKeys(Long userId) {
@@ -59,7 +80,7 @@ public class UserKeyManagementService {
     }
 
     @Transactional
-    public UserKeys generateKeyPair(GenerateKeyDto dto) throws Exception {
+    public GeneratedKeyResultDto generateKeyPair(GenerateKeyRequestDto dto) throws Exception {
         // Vérifier unicité du nom
         if (userKeyRepository.existsByUserIdAndKeyName(dto.getUserId(), dto.getKeyName())) {
             throw new IllegalArgumentException("Le nom de clé existe déjà");
@@ -68,24 +89,27 @@ public class UserKeyManagementService {
         // Générer la paire
         KeyPairDto keyPair = keyPairService.generateKeyPair();
 
-        // Chiffrer la clé privée
-        EncryptedSkDto encrypted = encryptionService.encryptPrivateKey(
-                keyPair.getPrivateKey()
-        );
-
         // Sauvegarder
         UserKeys entity = new UserKeys();
         entity.setUserId(dto.getUserId());
         entity.setKeyName(dto.getKeyName());
         entity.setPublicKey(keyPair.getPublicKey());
-        entity.setEncryptedPrivateKey(encrypted.getEncryptedData());
-        entity.setIv(encrypted.getIv());
         entity.setStatus(KeyStatus.ACTIVE);
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedAt(now);
         entity.setExpiredAt(now.plusMonths(dto.getValidity()));
 
-        return userKeyRepository.save(entity);
+        entity = userKeyRepository.save(entity);
+        auditClient.createAudit(
+                new AuditRequestDto(
+                        serviceName,
+                        AuditAction.CREATE_KEY.name(),
+                        "Create key : " + entity.getId(),
+                        AuditRequestDto.Status.SUCCES,
+                        LocalDateTime.now().toString()
+                )
+        );
+        return new GeneratedKeyResultDto(keyPair.getPrivateKey(), entity);
     }
 
     /**
@@ -93,21 +117,8 @@ public class UserKeyManagementService {
      */
     public String signFileWithUserKey(FileToSignDto dto)
             throws Exception {
-
-        // Récupérer la clé de l'utilisateur
-        UserKeys userKey = userKeyRepository.findByIdAndUserId(dto.getKeyId(), dto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Clé non trouvée ou non autorisée"
-                ));
-
-        // Déchiffrer la clé privée
-        String privateKey = encryptionService.decryptPrivateKey(
-                userKey.getEncryptedPrivateKey(),
-                userKey.getIv()
-        );
-
         // Signer le hash
-        return signatureService.signHash(dto.getFileHash(), privateKey);
+        return signatureService.signHash(dto.getFileHash(), dto.getPrivateKey());
     }
 
     /**
