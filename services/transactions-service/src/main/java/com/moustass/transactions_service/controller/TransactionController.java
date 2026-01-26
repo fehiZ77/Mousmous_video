@@ -26,7 +26,7 @@ public class TransactionController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyTransaction(@RequestBody VerifyTransactionDto dto){
+    public ResponseEntity<Object> verifyTransaction(@RequestBody VerifyTransactionDto dto){
         try {
             return new ResponseEntity<>(transactionService.verifyTransaction(dto), HttpStatus.OK);
         } catch (Exception ex) {
@@ -38,7 +38,7 @@ public class TransactionController {
     }
 
     @GetMapping("/videos/{objectName}")
-    public ResponseEntity<?> streamVideo(@PathVariable String objectName) {
+    public ResponseEntity<Object> streamVideo(@PathVariable String objectName) {
         try {
             // Récupère le stream depuis MinIO
             Resource resource = minIOService.getInputStream(objectName);
@@ -61,7 +61,7 @@ public class TransactionController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getTransactions(
+    public ResponseEntity<Object> getTransactions(
             @RequestParam("isOwner") boolean isOwner,
             @RequestParam("userId") Long userId
     ) {

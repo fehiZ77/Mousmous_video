@@ -1,5 +1,6 @@
 package com.moustass.audit_service.service;
 
+import com.moustass.audit_service.AuditException.GlobalException;
 import com.moustass.audit_service.entity.AuditEvent;
 import com.moustass.audit_service.filter.JwtUtils;
 import com.moustass.audit_service.utils.SecurityUtil;
@@ -19,7 +20,6 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -44,7 +44,7 @@ public class AuditService {
             return s.filter(Files::isRegularFile)
                     .filter(p -> p.getFileName().toString().endsWith(".log"))
                     .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (Exception e) {
             return List.of();
         }
@@ -78,9 +78,9 @@ public class AuditService {
         appendLine(line);
     }
 
-    public int verifyFile(String nameFile) {
+    public int verifyFile(String idFile) {
         try {
-            Path fileToVerify = Path.of(LOG_DIRECTORY + "/" + nameFile);
+            Path fileToVerify = Path.of(LOG_DIRECTORY + "/" + idFile);
             if (!Files.exists(fileToVerify)) return -1;
 
             List<String> lines = Files.readAllLines(fileToVerify);
@@ -122,17 +122,17 @@ public class AuditService {
             Files.createFile(current);
 
         } catch (Exception e) {
-            throw new RuntimeException("Cannot rotate corrupted audit log", e);
+            throw new GlobalException("Cannot rotate corrupted audit log", e);
         }
     }
 
     public Resource downloadFile(String fileName) throws Exception{
         try {
             Path fileToVerify = Path.of(LOG_DIRECTORY + "/" + fileName);
-            if (!Files.exists(fileToVerify)) throw new Exception("No file");
+            if (!Files.exists(fileToVerify)) throw new GlobalException("No file");
             return new UrlResource(fileToVerify.toUri());
         } catch (Exception e) {
-            throw new Exception("File error : " + e.getMessage());
+            throw new GlobalException("File error : " + e.getMessage());
         }
     }
 
@@ -162,7 +162,7 @@ public class AuditService {
                     StandardOpenOption.APPEND
             );
         } catch (Exception e) {
-            throw new RuntimeException("Cannot write audit log");
+            throw new GlobalException("Cannot write audit log");
         }
     }
 
@@ -173,15 +173,18 @@ public class AuditService {
 
             return Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new GlobalException(e.getMessage());
         }
     }
 
-    private long getNextLineNumber() {
+    private long getNextLineNumber(){
         try {
             Path path = Path.of(LOG_FILE);
             if (!Files.exists(path)) return 1;
-            return Files.lines(path).count() + 1;
+
+            try (Stream<String> lines = Files.lines(path)) {
+                return lines.count() + 1;
+            }
         } catch (Exception e) {
             return 1;
         }

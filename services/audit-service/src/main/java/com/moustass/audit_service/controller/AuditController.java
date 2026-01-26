@@ -27,7 +27,7 @@ public class AuditController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody AuditEvent event) {
+    public ResponseEntity<Object> create(@RequestBody AuditEvent event) {
         try {
             auditService.create(event);
             return new ResponseEntity<>("Audit saved", HttpStatus.OK);
@@ -41,7 +41,7 @@ public class AuditController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/logs")
-    public ResponseEntity<?> listLogs() {
+    public ResponseEntity<Object> listLogs() {
         try {
             List<Path> files = auditService.listLogFiles();
 
@@ -61,7 +61,7 @@ public class AuditController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/download")
-    public ResponseEntity<?> download(@RequestParam String fileToVerify) throws Exception {
+    public ResponseEntity<Object> download(@RequestParam String fileToVerify) throws Exception {
         try {
             Resource resource = auditService.downloadFile(fileToVerify);
             return ResponseEntity.ok()
@@ -79,9 +79,9 @@ public class AuditController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/verify")
-    public ResponseEntity<?> verify(@RequestParam String fileToVerify) {
+    public ResponseEntity<Object> verify(@RequestParam String idFile) {
         try {
-            return new ResponseEntity<>(auditService.verifyFile(fileToVerify), HttpStatus.OK);
+            return new ResponseEntity<>(auditService.verifyFile(idFile), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),

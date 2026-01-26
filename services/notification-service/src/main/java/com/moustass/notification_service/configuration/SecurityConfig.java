@@ -1,5 +1,6 @@
 package com.moustass.notification_service.configuration;
 
+import com.moustass.notification_service.NotificationException.GlobalException;
 import com.moustass.notification_service.filter.JwtConfig;
 import com.moustass.notification_service.filter.JwtUtils;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws GlobalException {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(kms ->

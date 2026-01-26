@@ -17,7 +17,7 @@ public class NotificationController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllNotificationsForUser(@RequestParam Long userId){
+    public ResponseEntity<Object> getAllNotificationsForUser(@RequestParam Long userId){
         try {
             return new ResponseEntity<>(notificationService.getNotificationsForUser(userId, true), HttpStatus.OK);
         } catch (Exception ex) {
@@ -29,7 +29,7 @@ public class NotificationController {
     }
 
     @GetMapping("/not-seen")
-    public ResponseEntity<?> getNotificationsForUser(@RequestParam Long userId){
+    public ResponseEntity<Object> getNotificationsForUser(@RequestParam Long userId){
         try {
             return new ResponseEntity<>(notificationService.getNotificationsForUser(userId, false), HttpStatus.OK);
         } catch (Exception ex) {

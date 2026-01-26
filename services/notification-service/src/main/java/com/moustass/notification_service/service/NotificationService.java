@@ -85,6 +85,7 @@ public class NotificationService {
 
         Duration duration = Duration.between(dateCreated, dateNow);
         long seconds = duration.getSeconds();
+        String debut = "il y a ";
 
         if (seconds < 60) {
             return "à l'instant";
@@ -92,25 +93,25 @@ public class NotificationService {
 
         long minutes = seconds / 60;
         if (minutes < 60) {
-            return "il y a " + minutes + " min";
+            return debut + minutes + " min";
         }
 
         long hours = minutes / 60;
         if (hours < 24) {
-            return "il y a " + hours + " heure" + (hours > 1 ? "s" : "");
+            return debut + hours + " heure" + (hours > 1 ? "s" : "");
         }
 
         long days = hours / 24;
         if (days < 30) {
-            return "il y a " + days + " jour" + (days > 1 ? "s" : "");
+            return debut + days + " jour" + (days > 1 ? "s" : "");
         }
 
         long months = days / 30;
         if (months < 12) {
-            return "il y a " + months + " mois";
+            return debut + months + " mois";
         }
 
         long years = months / 12;
-        return "il y a " + years + " an" + (years > 1 ? "s" : "");
+        return debut + years + " an" + (years > 1 ? "s" : "");
     }
 }

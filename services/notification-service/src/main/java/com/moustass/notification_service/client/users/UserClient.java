@@ -1,7 +1,6 @@
 package com.moustass.notification_service.client.users;
 
 import com.moustass.notification_service.utils.SecurityUtil;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -10,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class UserClient {
     private final WebClient webClient;
 
-    public UserClient(@Qualifier("usersWebClient") WebClient webClient) {
+    public UserClient(WebClient webClient) {
         this.webClient = webClient;
     }
 

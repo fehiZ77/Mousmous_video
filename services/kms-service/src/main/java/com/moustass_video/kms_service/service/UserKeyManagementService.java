@@ -1,5 +1,6 @@
 package com.moustass_video.kms_service.service;
 
+import com.moustass_video.kms_service.KmsException.GlobalException;
 import com.moustass_video.kms_service.client.audit.AuditAction;
 import com.moustass_video.kms_service.client.audit.AuditClient;
 import com.moustass_video.kms_service.client.audit.AuditRequestDto;
@@ -11,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class UserKeyManagementService {
     private final UserKeyRepository userKeyRepository;
     private final AuditClient auditClient;
 
-    private final String serviceName = "AUTH";
+    private static final String SERVIVE_NAME = "AUTH";
 
     public UserKeyManagementService(
             KeyPairService keyPairService,
@@ -43,7 +45,7 @@ public class UserKeyManagementService {
         key = userKeyRepository.save(key);
         auditClient.createAudit(
                 new AuditRequestDto(
-                        serviceName,
+                        SERVIVE_NAME,
                         AuditAction.REVOKE_KEY.name(),
                         "Revoke key : " + key.getId(),
                         AuditRequestDto.Status.SUCCES,
@@ -80,7 +82,7 @@ public class UserKeyManagementService {
     }
 
     @Transactional
-    public GeneratedKeyResultDto generateKeyPair(GenerateKeyRequestDto dto) throws Exception {
+    public GeneratedKeyResultDto generateKeyPair(GenerateKeyRequestDto dto) throws GlobalException, NoSuchAlgorithmException {
         // Vérifier unicité du nom
         if (userKeyRepository.existsByUserIdAndKeyName(dto.getUserId(), dto.getKeyName())) {
             throw new IllegalArgumentException("Le nom de clé existe déjà");
@@ -102,7 +104,7 @@ public class UserKeyManagementService {
         entity = userKeyRepository.save(entity);
         auditClient.createAudit(
                 new AuditRequestDto(
-                        serviceName,
+                        SERVIVE_NAME,
                         AuditAction.CREATE_KEY.name(),
                         "Create key : " + entity.getId(),
                         AuditRequestDto.Status.SUCCES,
@@ -116,7 +118,7 @@ public class UserKeyManagementService {
      * Signe un fichier avec la clé privée de l'utilisateur
      */
     public String signFileWithUserKey(FileToSignDto dto)
-            throws Exception {
+            throws GlobalException {
         // Signer le hash
         return signatureService.signHash(dto.getFileHash(), dto.getPrivateKey());
     }
@@ -125,7 +127,7 @@ public class UserKeyManagementService {
      * Vérifie une signature avec la clé publique d'un utilisateur
      */
     public boolean verifySignature(VerifySignDto dto)
-            throws Exception {
+            throws GlobalException {
 
         // Vérifier avec la clé publique
         return signatureService.verifySignature(

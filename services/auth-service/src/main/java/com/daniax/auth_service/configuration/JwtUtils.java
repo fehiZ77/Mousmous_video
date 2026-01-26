@@ -1,5 +1,6 @@
 package com.daniax.auth_service.configuration;
 
+import com.daniax.auth_service.AuthException.GlobalException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -49,8 +50,6 @@ public class JwtUtils {
             String username = extractUsername(token);
             return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
-            return false;
-        } catch (Exception e) {
             return false;
         }
     }

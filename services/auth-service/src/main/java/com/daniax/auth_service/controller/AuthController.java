@@ -22,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginUserDto userDto) {
+    public ResponseEntity<Object> login(@RequestBody LoginUserDto userDto) {
         try {
             AuthResponse response = authService.login(userDto);
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -35,7 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/change")
-    public ResponseEntity<?> change(@RequestBody ChangeMdpDto mdpDto) {
+    public ResponseEntity<Object> change(@RequestBody ChangeMdpDto mdpDto) {
         try {
             authService.changePassword(mdpDto);
             return new ResponseEntity<>("Mdp changed", HttpStatus.OK);
@@ -53,7 +53,7 @@ public class AuthController {
      */
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/others")
-    public ResponseEntity<?> getOtherUsers(@RequestParam Long userId) {
+    public ResponseEntity<Object> getOtherUsers(@RequestParam Long userId) {
         try {
             return new ResponseEntity<>(authService.otherUsers(userId), HttpStatus.OK);
         } catch (Exception ex) {
@@ -82,7 +82,7 @@ public class AuthController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterUserDto userDto) {
+    public ResponseEntity<Object> register(@RequestBody RegisterUserDto userDto) {
         try {
             User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getMdp(), userDto.getRole());
             user = authService.create(user);
@@ -97,7 +97,7 @@ public class AuthController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
-    public ResponseEntity<?> users() {
+    public ResponseEntity<Object> users() {
         try {
             return new ResponseEntity<>(authService.users(), HttpStatus.OK);
         } catch (Exception ex) {

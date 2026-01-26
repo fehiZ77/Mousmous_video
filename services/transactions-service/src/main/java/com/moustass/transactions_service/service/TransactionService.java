@@ -1,5 +1,6 @@
 package com.moustass.transactions_service.service;
 
+import com.moustass.transactions_service.TransactionException.GlobalException;
 import com.moustass.transactions_service.client.TransactionAction;
 import com.moustass.transactions_service.client.audit.AuditClient;
 import com.moustass.transactions_service.client.audit.AuditRequestDto;
@@ -20,8 +21,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -60,7 +63,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public boolean verifyTransaction(VerifyTransactionDto dto) throws Exception{
+    public boolean verifyTransaction(VerifyTransactionDto dto) throws GlobalException {
         try {
             Media media = mediaRepository.findByTransactionId(dto.getTransactionId())
                     .orElseThrow(() -> new RuntimeException("Media not found for transaction " + dto.getTransactionId()));
@@ -101,7 +104,7 @@ public class TransactionService {
 
             return isFileOk;
         } catch (Exception e) {
-            throw new Exception(e);
+            throw new GlobalException(e.getMessage());
         }
     }
 
@@ -133,7 +136,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public void createTransaction(TransactionRequestDto dto) throws Exception{
+    public void createTransaction(TransactionRequestDto dto) throws GlobalException, NoSuchAlgorithmException, IOException {
         Transaction transaction = new Transaction(dto.getOwnerId(), dto.getRecipientId(), dto.getAmount(), dto.getValidity());
         String fileHash = hashFile(dto.getVideo());
         String signature = kmsClient.signFile(
@@ -180,13 +183,13 @@ public class TransactionService {
     /**
      * Hash un fichier avec SHA-256
      */
-    private String hashFile(MultipartFile file) throws Exception {
+    private String hashFile(MultipartFile file) throws GlobalException, NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(file.getBytes());
         return Base64.getEncoder().encodeToString(hash);
     }
 
-    private String readPrivateKeyFromFile(MultipartFile privateKeyFile) throws Exception {
+    private String readPrivateKeyFromFile(MultipartFile privateKeyFile) throws GlobalException, IOException {
 
         if (privateKeyFile == null || privateKeyFile.isEmpty()) {
             throw new IllegalArgumentException("Fichier de clé privée manquant");

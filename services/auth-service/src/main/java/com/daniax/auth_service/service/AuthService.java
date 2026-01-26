@@ -1,5 +1,6 @@
 package com.daniax.auth_service.service;
 
+import com.daniax.auth_service.AuthException.GlobalException;
 import com.daniax.auth_service.client.audit.AuditAction;
 import com.daniax.auth_service.client.audit.AuditClient;
 import com.daniax.auth_service.client.audit.AuditRequestDto;
@@ -27,7 +28,7 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final AuditClient auditClient;
 
-    private final String serviceName = "AUTH";
+    private static final String SERVICE_NAME = "AUTH";
 
     public AuthService(
             UserRepository userRepository,
@@ -43,17 +44,17 @@ public class AuthService {
         this.auditClient = auditClient;
     }
 
-    public User create(User user) throws Exception{
+    public User create(User user) throws GlobalException {
         
         if(userRepository.findByUserName(user.getUserName()) != null) {
             new AuditRequestDto(
-                    serviceName,
+                    SERVICE_NAME,
                     AuditAction.USER_CREATED.name(),
                     "",
                     AuditRequestDto.Status.FAILED,
                     LocalDateTime.now().toString()
             );
-            throw new Exception("User already exists");
+            throw new GlobalException("User already exists");
         }
 
         user.setMdp(passwordEncoder.encode(user.getMdp()));
@@ -61,7 +62,7 @@ public class AuthService {
 
         auditClient.createAudit(
                 new AuditRequestDto(
-                        serviceName,
+                        SERVICE_NAME,
                         AuditAction.USER_CREATED.name(),
                         "New user : " +user.getUserName(),
                         AuditRequestDto.Status.SUCCES,
@@ -71,24 +72,24 @@ public class AuthService {
         return user;
     }
 
-    public void changePassword(ChangeMdpDto change) throws Exception {
+    public void changePassword(ChangeMdpDto change) throws GlobalException {
         User user = userRepository.findByUserName(change.getUsername());
         if (user == null) {
-            throw new Exception("User not found");
+            throw new GlobalException("User not found");
         }
 
         // Vérifier l'ancien mot de passe
         if (!passwordEncoder.matches(change.getOldPassword(), user.getMdp())) {
             auditClient.createAudit(
                     new AuditRequestDto(
-                            serviceName,
+                            SERVICE_NAME,
                             AuditAction.CHANGE_MDP.name(),
                             "",
                             AuditRequestDto.Status.FAILED,
                             LocalDateTime.now().toString()
                     )
             );
-            throw new Exception("Old password is incorrect");
+            throw new GlobalException("Old password is incorrect");
         }
 
         user.setMdp(passwordEncoder.encode(change.getNewPassword()));
@@ -96,7 +97,7 @@ public class AuthService {
         userRepository.save(user);
         auditClient.createAudit(
                 new AuditRequestDto(
-                        serviceName,
+                        SERVICE_NAME,
                         AuditAction.CHANGE_MDP.name(),
                         "",
                         AuditRequestDto.Status.SUCCES,
@@ -105,14 +106,14 @@ public class AuthService {
         );
     }
 
-    public AuthResponse login(LoginUserDto loginUserDto) throws Exception{
+    public AuthResponse login(LoginUserDto loginUserDto) throws GlobalException{
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginUserDto.getUserName(), loginUserDto.getMdp())
             );
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
-            throw new Exception("Invalid mdp or user");
+            throw new GlobalException("Invalid mdp or user");
         }
         if(authentication.isAuthenticated()){
             User user = userRepository.findByUserName(loginUserDto.getUserName());
@@ -121,7 +122,7 @@ public class AuthService {
             String token = jwtUtils.generateToken(user.getId(), user.getUserName(), user.getRole().name(), user.getFirstLogin());
 
             AuditRequestDto audit = new AuditRequestDto(
-                    serviceName,
+                    SERVICE_NAME,
                     AuditAction.USER_LOGIN.name(),
                     "",
                     AuditRequestDto.Status.SUCCES,
@@ -137,7 +138,7 @@ public class AuthService {
                     user.getFirstLogin()
             );
         }
-        throw new Exception("Invalid mdp or user");
+        throw new GlobalException("Invalid mdp or user");
     }
 
     public List<UserDto> users(){

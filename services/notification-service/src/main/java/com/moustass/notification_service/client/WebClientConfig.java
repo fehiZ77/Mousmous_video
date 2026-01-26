@@ -9,7 +9,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
     @Bean
-    @Qualifier("usersWebClient")
     public WebClient usersWebClient(
             @Value("${client.users.service}") String usersUrl
     ) {

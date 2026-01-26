@@ -1,6 +1,5 @@
 package com.daniax.auth_service.client.audit;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,7 +10,7 @@ public class AuditClient {
 
     private final WebClient webClient;
 
-    public AuditClient(@Qualifier("auditWebClient") WebClient webClient) {
+    public AuditClient(WebClient webClient) {
         this.webClient = webClient;
     }
 

@@ -21,7 +21,7 @@ public class KeyController {
      * Génère une nouvelle paire de clés pour l'utilisateur
      */
     @PostMapping("/generate")
-    public ResponseEntity<?> generateKeyPair(@RequestBody GenerateKeyRequestDto request) {
+    public ResponseEntity<Object> generateKeyPair(@RequestBody GenerateKeyRequestDto request) {
         try {
             GeneratedKeyResultDto result = keyManagementService.generateKeyPair(request);
             String keyName = result.getSavedKey().getKeyName();
@@ -51,7 +51,7 @@ public class KeyController {
      * Liste toutes les clés d'un utilisateur
      */
     @GetMapping("/getkeys")
-    public ResponseEntity<?> listKeys(@RequestParam Long userId) {
+    public ResponseEntity<Object> listKeys(@RequestParam Long userId) {
         try {
             return new ResponseEntity<>(keyManagementService.findAllById(userId), HttpStatus.OK);
         } catch (Exception e) {
@@ -66,7 +66,7 @@ public class KeyController {
      * Liste toutes les clés valides d'un utilisateur
      */
     @GetMapping("/getvalidekeys")
-    public ResponseEntity<?> listValidKeys(@RequestParam Long userId) {
+    public ResponseEntity<Object> listValidKeys(@RequestParam Long userId) {
         try {
             return new ResponseEntity<>(keyManagementService.getValidUserKeys(userId), HttpStatus.OK);
         } catch (Exception e) {
@@ -81,7 +81,7 @@ public class KeyController {
      * Revoquer une clé
      */
     @PostMapping("/revokekey")
-    public ResponseEntity<?> revoke(@RequestBody RevokeKeyRequestDto dto) {
+    public ResponseEntity<Object> revoke(@RequestBody RevokeKeyRequestDto dto) {
         try {
             return new ResponseEntity<>(keyManagementService.revokeKey(dto), HttpStatus.OK);
         } catch (Exception e) {

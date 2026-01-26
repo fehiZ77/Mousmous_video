@@ -1,5 +1,6 @@
 package com.moustass.audit_service.configuration;
 
+import com.moustass.audit_service.AuditException.GlobalException;
 import com.moustass.audit_service.filter.JwtConfig;
 import com.moustass.audit_service.filter.JwtUtils;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws GlobalException {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(audit ->

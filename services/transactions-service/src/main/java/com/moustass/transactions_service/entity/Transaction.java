@@ -1,5 +1,6 @@
 package com.moustass.transactions_service.entity;
 
+import com.moustass.transactions_service.TransactionException.GlobalException;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -33,7 +34,7 @@ public class Transaction {
     @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Media media;
 
-    public Transaction(Long ownerId, Long recipientId, Double amount, int validity) throws Exception{
+    public Transaction(Long ownerId, Long recipientId, Double amount, int validity) throws GlobalException {
         this.ownerId = ownerId;
         this.recipientId = recipientId;
         this.setAmount(amount);
@@ -75,8 +76,8 @@ public class Transaction {
         return amount;
     }
 
-    public void setAmount(Double amount) throws Exception{
-        if(amount <= 0) throw new Exception("Amount should be positif");
+    public void setAmount(Double amount) throws GlobalException{
+        if(amount <= 0) throw new GlobalException("Amount should be positif");
         this.amount = amount;
     }
 
