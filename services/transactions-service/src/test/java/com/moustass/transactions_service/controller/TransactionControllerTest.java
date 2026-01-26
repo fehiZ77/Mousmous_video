@@ -5,6 +5,7 @@ import com.moustass.transactions_service.dto.TransactionRequestDto;
 import com.moustass.transactions_service.dto.TransactionResponseDto;
 import com.moustass.transactions_service.dto.VerifyTransactionDto;
 import com.moustass.transactions_service.service.TransactionService;
+import io.minio.errors.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,13 +16,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,7 +80,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Failure() throws Exception {
+    void testCreateTransaction_Failure() throws GlobalException, NoSuchAlgorithmException, IOException, ServerException, InsufficientDataException, ErrorResponseException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException  {
         // Arrange
         doThrow(new Exception("Error")).when(transactionService).createTransaction(any(TransactionRequestDto.class));
         MultipartFile video = mock(MultipartFile.class);
@@ -125,7 +128,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void testVerifyTransaction_Success() throws Exception {
+    void testVerifyTransaction_Success() throws GlobalException {
         // Arrange
         when(transactionService.verifyTransaction(any(VerifyTransactionDto.class))).thenReturn(true);
 
@@ -139,7 +142,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void testVerifyTransaction_Failure() throws Exception {
+    void testVerifyTransaction_Failure() throws GlobalException {
         // Arrange
         when(transactionService.verifyTransaction(any(VerifyTransactionDto.class))).thenThrow(new GlobalException("Error"));
 
