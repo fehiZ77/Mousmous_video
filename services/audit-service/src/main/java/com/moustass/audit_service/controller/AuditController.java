@@ -61,14 +61,9 @@ public class AuditController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/download")
-    public ResponseEntity<Object> download(@RequestParam String fileToVerify) throws Exception {
+    public ResponseEntity<Object> download(@RequestParam String idFile) throws Exception {
         try {
-            Resource resource = auditService.downloadFile(fileToVerify);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .contentLength(resource.contentLength())
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToVerify + "\"")
-                    .body(resource);
+            return new ResponseEntity<>("Donwload file " + idFile, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),
@@ -81,7 +76,7 @@ public class AuditController {
     @GetMapping("/verify")
     public ResponseEntity<Object> verify(@RequestParam String idFile) {
         try {
-            return new ResponseEntity<>(auditService.verifyFile(idFile), HttpStatus.OK);
+            return new ResponseEntity<>("Verification file " + idFile, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     ex.getMessage(),
