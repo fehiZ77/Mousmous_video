@@ -1,5 +1,6 @@
 package com.moustass.audit_service.service;
 
+import com.moustass.audit_service.AuditException.GlobalException;
 import com.moustass.audit_service.entity.AuditEvent;
 import com.moustass.audit_service.filter.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,16 +12,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -178,7 +177,7 @@ class AuditServiceTest {
     @Test
     void testDownloadFile_NotFound() {
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             auditService.downloadFile("nonexistent.log");
         });
 

@@ -1,5 +1,6 @@
 package com.moustass.transactions_service.service;
 
+import com.moustass.transactions_service.TransactionException.GlobalException;
 import com.moustass.transactions_service.client.TransactionAction;
 import com.moustass.transactions_service.client.audit.AuditClient;
 import com.moustass.transactions_service.client.audit.AuditRequestDto;
@@ -195,7 +196,7 @@ class TransactionServiceTest {
         when(mediaRepository.findByTransactionId(1L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             transactionService.verifyTransaction(verifyTransactionDto);
         });
 

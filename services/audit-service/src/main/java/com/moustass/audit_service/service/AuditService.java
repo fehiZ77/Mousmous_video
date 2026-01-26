@@ -126,7 +126,7 @@ public class AuditService {
         }
     }
 
-    public Resource downloadFile(String fileName) throws Exception{
+    public Resource downloadFile(String fileName) throws GlobalException{
         try {
             Path fileToVerify = Path.of(LOG_DIRECTORY + "/" + fileName);
             if (!Files.exists(fileToVerify)) throw new GlobalException("No file");

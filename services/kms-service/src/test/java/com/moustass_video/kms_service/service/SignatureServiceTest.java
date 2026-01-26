@@ -1,5 +1,6 @@
 package com.moustass_video.kms_service.service;
 
+import com.moustass_video.kms_service.KmsException.GlobalException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +56,7 @@ class SignatureServiceTest {
         String invalidKey = "not-valid-base64!!!";
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             signatureService.signHash(testHash, invalidKey);
         });
 
@@ -68,7 +69,7 @@ class SignatureServiceTest {
         String invalidKey = Base64.getEncoder().encodeToString("not-a-key".getBytes());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             signatureService.signHash(testHash, invalidKey);
         });
 
@@ -111,7 +112,7 @@ class SignatureServiceTest {
         String invalidKey = "not-valid-base64!!!";
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             signatureService.verifySignature(testHash, "signature", invalidKey);
         });
 
