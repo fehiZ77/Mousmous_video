@@ -146,9 +146,7 @@
 }
 
 /* Masquer le message "compiling" et ses conteneurs */
-[data-nextjs-toast] [data-nextjs-toast-content],
-[role="alert"],
-[role="status"] {
+[data-nextjs-toast] [data-nextjs-toast-content]{
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
