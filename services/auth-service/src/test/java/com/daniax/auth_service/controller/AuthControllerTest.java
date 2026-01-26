@@ -1,5 +1,6 @@
 package com.daniax.auth_service.controller;
 
+import com.daniax.auth_service.AuthException.GlobalException;
 import com.daniax.auth_service.dto.*;
 import com.daniax.auth_service.entity.Role;
 import com.daniax.auth_service.entity.User;
@@ -62,7 +63,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testLogin_Success() throws Exception {
+    void testLogin_Success() throws GlobalException {
         // Arrange
         when(authService.login(loginUserDto)).thenReturn(authResponse);
 
@@ -77,9 +78,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void testLogin_Failure() throws Exception {
+    void testLogin_Failure() throws GlobalException {
         // Arrange
-        when(authService.login(loginUserDto)).thenThrow(new Exception("Invalid credentials"));
+        when(authService.login(loginUserDto)).thenThrow(new GlobalException("Invalid credentials"));
 
         // Act
         ResponseEntity<?> response = authController.login(loginUserDto);
@@ -91,7 +92,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testChange_Success() throws Exception {
+    void testChange_Success() throws GlobalException {
         // Arrange
         doNothing().when(authService).changePassword(changeMdpDto);
 
@@ -105,9 +106,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void testChange_Failure() throws Exception {
+    void testChange_Failure() throws GlobalException {
         // Arrange
-        doThrow(new Exception("Old password is incorrect")).when(authService).changePassword(changeMdpDto);
+        doThrow(new GlobalException("Old password is incorrect")).when(authService).changePassword(changeMdpDto);
 
         // Act
         ResponseEntity<?> response = authController.change(changeMdpDto);
@@ -119,7 +120,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testGetOtherUsers_Success() throws Exception {
+    void testGetOtherUsers_Success() throws GlobalException {
         // Arrange
         List<UserDto> users = new ArrayList<>();
         UserDto userDto = new UserDto(2L, "user2", "user2@example.com", "USER");
@@ -137,7 +138,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testGetOtherUsers_Failure() throws Exception {
+    void testGetOtherUsers_Failure() throws GlobalException {
         // Arrange
         when(authService.otherUsers(1L)).thenThrow(new RuntimeException("Error"));
 
@@ -151,7 +152,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testGetUserName_Success() throws Exception {
+    void testGetUserName_Success() throws GlobalException {
         // Arrange
         when(authService.userName(1L)).thenReturn("testuser");
 
@@ -165,9 +166,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void testGetUserName_Failure() throws Exception {
+    void testGetUserName_Failure() throws GlobalException {
         // Arrange
-        when(authService.userName(1L)).thenThrow(new RuntimeException("User not found"));
+        when(authService.userName(1L)).thenThrow(new GlobalException("User not found"));
 
         // Act
         ResponseEntity<String> response = authController.getUserName(1L);
@@ -179,7 +180,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testRegister_Success() throws Exception {
+    void testRegister_Success() throws GlobalException {
         // Arrange
         when(authService.create(any(User.class))).thenReturn(user);
 
@@ -193,9 +194,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void testRegister_Failure() throws Exception {
+    void testRegister_Failure() throws GlobalException {
         // Arrange
-        when(authService.create(any(User.class))).thenThrow(new Exception("User already exists"));
+        when(authService.create(any(User.class))).thenThrow(new GlobalException("User already exists"));
 
         // Act
         ResponseEntity<?> response = authController.register(registerUserDto);
@@ -207,7 +208,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void testUsers_Success() throws Exception {
+    void testUsers_Success() throws GlobalException {
         // Arrange
         List<UserDto> users = new ArrayList<>();
         UserDto userDto = new UserDto(1L, "user1", "user1@example.com", "USER");
@@ -225,9 +226,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void testUsers_Failure() throws Exception {
+    void testUsers_Failure() throws GlobalException {
         // Arrange
-        when(authService.users()).thenThrow(new RuntimeException("Error"));
+        when(authService.users()).thenThrow(new GlobalException("Error"));
 
         // Act
         ResponseEntity<?> response = authController.users();

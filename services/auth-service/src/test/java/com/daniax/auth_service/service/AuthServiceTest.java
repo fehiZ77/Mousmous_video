@@ -1,6 +1,6 @@
 package com.daniax.auth_service.service;
 
-import com.daniax.auth_service.client.audit.AuditAction;
+import com.daniax.auth_service.AuthException.GlobalException;
 import com.daniax.auth_service.client.audit.AuditClient;
 import com.daniax.auth_service.client.audit.AuditRequestDto;
 import com.daniax.auth_service.configuration.JwtUtils;
@@ -12,6 +12,7 @@ import com.daniax.auth_service.entity.Role;
 import com.daniax.auth_service.entity.User;
 import com.daniax.auth_service.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +74,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testCreateUser_Success() throws Exception {
+    void testCreateUser_Success() throws GlobalException {
         // Arrange
         User newUser = new User();
         newUser.setUserName("newuser");
@@ -107,7 +108,7 @@ class AuthServiceTest {
         when(userRepository.findByUserName("existinguser")).thenReturn(existingUser);
 
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = Assertions.assertThrows(GlobalException.class, () -> {
             authService.create(existingUser);
         });
 
@@ -151,7 +152,7 @@ class AuthServiceTest {
         when(userRepository.findByUserName("nonexistent")).thenReturn(null);
 
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             authService.changePassword(changeDto);
         });
 
@@ -173,7 +174,7 @@ class AuthServiceTest {
         doNothing().when(auditClient).createAudit(any(AuditRequestDto.class));
 
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             authService.changePassword(changeDto);
         });
 
@@ -217,7 +218,7 @@ class AuthServiceTest {
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             authService.login(loginUserDto);
         });
 
@@ -235,7 +236,7 @@ class AuthServiceTest {
                 .thenReturn(authentication);
 
         // Act & Assert
-        Exception exception = assertThrows(Exception.class, () -> {
+        GlobalException exception = assertThrows(GlobalException.class, () -> {
             authService.login(loginUserDto);
         });
 
