@@ -17,12 +17,14 @@ import com.moustass.transactions_service.entity.Transaction;
 import com.moustass.transactions_service.entity.TransactionStatus;
 import com.moustass.transactions_service.repository.MediaRepository;
 import com.moustass.transactions_service.repository.TransactionRepository;
+import io.minio.errors.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -136,7 +138,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public void createTransaction(TransactionRequestDto dto) throws GlobalException, NoSuchAlgorithmException, IOException {
+    public void createTransaction(TransactionRequestDto dto) throws GlobalException, NoSuchAlgorithmException, IOException, ServerException, InsufficientDataException, ErrorResponseException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         Transaction transaction = new Transaction(dto.getOwnerId(), dto.getRecipientId(), dto.getAmount(), dto.getValidity());
         String fileHash = hashFile(dto.getVideo());
         String signature = kmsClient.signFile(
