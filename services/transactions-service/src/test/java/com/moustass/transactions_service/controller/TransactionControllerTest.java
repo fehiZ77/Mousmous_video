@@ -1,5 +1,6 @@
 package com.moustass.transactions_service.controller;
 
+import com.moustass.transactions_service.TransactionException.GlobalException;
 import com.moustass.transactions_service.dto.TransactionRequestDto;
 import com.moustass.transactions_service.dto.TransactionResponseDto;
 import com.moustass.transactions_service.dto.VerifyTransactionDto;
@@ -140,7 +141,7 @@ class TransactionControllerTest {
     @Test
     void testVerifyTransaction_Failure() throws Exception {
         // Arrange
-        when(transactionService.verifyTransaction(any(VerifyTransactionDto.class))).thenThrow(new Exception("Error"));
+        when(transactionService.verifyTransaction(any(VerifyTransactionDto.class))).thenThrow(new GlobalException("Error"));
 
         // Act
         ResponseEntity<?> response = transactionController.verifyTransaction(verifyTransactionDto);
