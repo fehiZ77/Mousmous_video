@@ -80,9 +80,9 @@ class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Failure() throws GlobalException, NoSuchAlgorithmException, IOException, ServerException, InsufficientDataException, ErrorResponseException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException  {
+    void testCreateTransaction_Failure() throws ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, IOException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         // Arrange
-        doThrow(new Exception("Error")).when(transactionService).createTransaction(any(TransactionRequestDto.class));
+        doThrow(new GlobalException("Error")).when(transactionService).createTransaction(any(TransactionRequestDto.class));
         MultipartFile video = mock(MultipartFile.class);
         MultipartFile sk = mock(MultipartFile.class);
         when(sk.getOriginalFilename()).thenReturn("key.pem");
