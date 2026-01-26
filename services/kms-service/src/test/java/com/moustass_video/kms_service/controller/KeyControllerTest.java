@@ -1,5 +1,6 @@
 package com.moustass_video.kms_service.controller;
 
+import com.moustass_video.kms_service.KmsException.GlobalException;
 import com.moustass_video.kms_service.dto.*;
 import com.moustass_video.kms_service.entity.KeyStatus;
 import com.moustass_video.kms_service.entity.UserKeys;
@@ -83,7 +84,7 @@ class KeyControllerTest {
     void testGenerateKeyPair_Failure() throws Exception {
         // Arrange
         when(keyManagementService.generateKeyPair(any(GenerateKeyRequestDto.class)))
-                .thenThrow(new Exception("Key name already exists"));
+                .thenThrow(new IllegalArgumentException("Key name already exists"));
 
         // Act
         ResponseEntity<?> response = keyController.generateKeyPair(generateKeyRequestDto);
@@ -210,7 +211,7 @@ class KeyControllerTest {
     void testSignFile_Failure() throws Exception {
         // Arrange
         when(keyManagementService.signFileWithUserKey(fileToSignDto))
-                .thenThrow(new Exception("Signing failed"));
+                .thenThrow(new GlobalException("Signing failed"));
 
         // Act
         ResponseEntity<String> response = keyController.signFile(fileToSignDto);
@@ -239,7 +240,7 @@ class KeyControllerTest {
     void testVerifySignature_Failure() throws Exception {
         // Arrange
         when(keyManagementService.verifySignature(verifySignDto))
-                .thenThrow(new Exception("Verification failed"));
+                .thenThrow(new GlobalException("Verification failed"));
 
         // Act
         ResponseEntity<Boolean> response = keyController.verifySignature(verifySignDto);
