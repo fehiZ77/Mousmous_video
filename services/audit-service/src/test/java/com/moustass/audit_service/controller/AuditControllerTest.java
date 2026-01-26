@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.moustass.audit_service.AuditException.GlobalException;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,7 +20,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,7 +50,7 @@ class AuditControllerTest {
         doNothing().when(auditService).create(any(AuditEvent.class));
 
         // Act
-        ResponseEntity<?> response = auditController.create(auditEvent);
+        ResponseEntity<Object> response = auditController.create(auditEvent);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -82,7 +82,7 @@ class AuditControllerTest {
         when(auditService.listLogFiles()).thenReturn(paths);
 
         // Act
-        ResponseEntity<?> response = auditController.listLogs();
+        ResponseEntity<Object> response = auditController.listLogs();
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -112,7 +112,7 @@ class AuditControllerTest {
         when(auditService.downloadFile("test.log")).thenReturn(resource);
 
         // Act
-        ResponseEntity<?> response = auditController.download("test.log");
+        ResponseEntity<Object> response = auditController.download("test.log");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -123,7 +123,7 @@ class AuditControllerTest {
     @Test
     void testDownload_Failure() throws Exception {
         // Arrange
-        when(auditService.downloadFile("nonexistent.log")).thenThrow(new Exception("File not found"));
+        when(auditService.downloadFile("nonexistent.log")).thenThrow(new GlobalException("File not found"));
 
         // Act
         ResponseEntity<?> response = auditController.download("nonexistent.log");
