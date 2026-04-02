@@ -21,7 +21,7 @@ Le projet est compose des services suivants:
 - `audit-service` sur `http://localhost:8085`
 - `frontend` sur `http://localhost:3000`
 - `minio` sur `http://localhost:9000`
-- Console MinIO sur `http://localhost:9001`
+- Console MinIO sur `http://localhost:9001` pour voir les videos
 
 Chaque microservice met en place sa propre base MySQL via `docker-compose.yml`.
 
