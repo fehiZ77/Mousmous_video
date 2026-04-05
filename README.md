@@ -51,8 +51,8 @@ docker compose down
 
 Un administrateur est cree automatiquement au demarrage du `auth-service`.
 
-- `adminName = admin`
-- `adminMdp = admin123`
+- `email = admin@admin.com`
+- `mdp = admin123`
 
 Ce compte permet notamment de se connecter a l'application et de creer d'autres utilisateurs.
 
